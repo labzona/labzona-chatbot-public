@@ -4,131 +4,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Лабзона | Онлайн-консультант</title>
-<style>
-:root {
-  --red: #c91d2c;
-  --pale: #fbe6e9;
-  --line: #dddddd;
-  --text: #252525;
-}
+<title>Лабзона | Консультант з лабораторного обладнання</title>
 
+<style>
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
+  padding: 12px;
   background: #f4f6f8;
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, sans-serif;
+  color: #242424;
 }
 
 .chat {
-  max-width: 620px;
-  height: min(760px, 96dvh);
-  min-height: 420px;
-  margin: 12px auto;
+  width: 100%;
+  max-width: 520px;
+  height: min(700px, 95dvh);
+  margin: 0 auto;
   background: white;
-  border: 1px solid var(--line);
-  border-radius: 17px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .header {
-  background: var(--red);
+  padding: 17px 20px;
+  background: #c91d2c;
   color: white;
-  padding: 19px 22px;
-  font-weight: bold;
-  font-size: 22px;
 }
 
-.sub {
+.header strong {
+  display: block;
+  font-size: 20px;
+}
+
+.header small {
+  display: block;
+  margin-top: 5px;
   font-size: 12px;
-  font-weight: normal;
-  opacity: .9;
-  margin-top: 4px;
 }
 
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 18px;
-  scroll-behavior: smooth;
+  padding: 16px;
 }
 
 .message {
-  padding: 13px 15px;
-  margin-bottom: 13px;
-  border-radius: 13px;
-  line-height: 1.48;
-  white-space: pre-wrap;
+  max-width: 94%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  line-height: 1.5;
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
-.bot { background: #f0f0f0; }
+.bot {
+  background: #f0f0f0;
+}
 
 .user {
-  background: var(--pale);
-  margin-left: 12%;
+  background: #fbe4e7;
+  margin-left: auto;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   margin-bottom: 14px;
 }
 
 .choice {
-  font: inherit;
-  background: white;
-  color: var(--red);
-  border: 1px solid var(--red);
+  border: 1px solid #c91d2c;
   border-radius: 9px;
+  background: white;
+  color: #c91d2c;
   padding: 9px 12px;
   cursor: pointer;
+  font-size: 13px;
 }
 
-.choice:hover { background: #fff3f4; }
-
-.choice:focus-visible,
-.send:focus-visible,
-input:focus-visible {
-  outline: 3px solid #2563eb;
-  outline-offset: 2px;
+.choice:hover {
+  background: #fff0f2;
 }
 
 .product {
-  border: 1px solid var(--line);
-  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 13px;
   margin-bottom: 12px;
-  border-radius: 13px;
 }
 
 .product a {
-  color: var(--red);
-  font-size: 17px;
+  color: #c91d2c;
+  font-size: 15px;
   font-weight: bold;
   line-height: 1.4;
 }
 
 .price {
-  margin-top: 8px;
+  margin-top: 9px;
   font-weight: bold;
 }
 
-.details {
-  color: #555;
-  font-size: 14px;
+.detail {
+  margin-top: 8px;
+  font-size: 13px;
   line-height: 1.5;
-  margin-top: 9px;
-  overflow-wrap: anywhere;
+  color: #555;
 }
 
-.status {
+.match {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.match strong {
+  color: #237247;
+}
+
+.notice {
   font-size: 12px;
-  color: #666;
+  color: #777;
   margin-top: 8px;
 }
 
@@ -137,947 +141,1021 @@ input:focus-visible {
   gap: 8px;
   padding: 12px;
   border-top: 1px solid #eee;
+  background: white;
 }
 
-input {
+.form input {
   flex: 1;
   min-width: 0;
+  padding: 11px;
   border: 1px solid #ccc;
   border-radius: 9px;
-  padding: 12px;
-  font: inherit;
+  font-size: 14px;
 }
 
 .send {
-  border: 0;
+  padding: 11px 13px;
+  border: none;
   border-radius: 9px;
-  background: var(--red);
+  background: #c91d2c;
   color: white;
-  padding: 12px 16px;
-  font: inherit;
   cursor: pointer;
 }
 
-.send:disabled {
-  opacity: .6;
-  cursor: wait;
-}
+@media (max-width: 420px) {
+  body { padding: 0; }
 
-@media (max-width: 650px) {
   .chat {
     height: 100dvh;
-    max-width: none;
-    min-height: 0;
-    margin: 0;
     border-radius: 0;
   }
-  .header { font-size: 19px; padding: 15px; }
-  .messages { padding: 12px; }
-  .form { padding: 9px; }
-  .send { padding: 10px; }
+
+  .header strong { font-size: 18px; }
+
+  .choice { font-size: 12px; }
 }
 </style>
 </head>
+
 <body>
 
-<main class="chat">
-  <header class="header">
-    Лабзона | Консультант
-    <div class="sub">
-      Підбір обладнання з каталогу Лабзони
-    </div>
-  </header>
+<div class="chat">
+  <div class="header">
+    <strong>Лабзона | Консультант</strong>
+    <small>Підбір обладнання з каталогу Лабзони</small>
+  </div>
 
-  <section class="messages" id="messages"
-    aria-live="polite"></section>
+  <div class="messages" id="messages"></div>
 
   <form class="form" id="form">
-    <input id="input"
+    <input
+      id="input"
       placeholder="Яке обладнання шукаєте?"
-      autocomplete="off" required>
-    <button class="send" id="send" type="submit">
+      autocomplete="off"
+      required
+    >
+    <button class="send" type="submit">
       Надіслати
     </button>
   </form>
-</main>
+</div>
 
 <script>
-'use strict';
+"use strict";
 
-const CATALOG_URL = './catalog.json';
-const PHONE = '0505956447';
+const CATALOG_URL = "./catalog.json";
+const MANAGER_URL = "https://labzona.com.ua/";
 
-const messages = document.getElementById('messages');
-const input = document.getElementById('input');
-const send = document.getElementById('send');
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
 
 let products = [];
 let loaded = false;
 
-let state = {};
+let state = {
+  category: null,
+  material: null,
+  purpose: null,
+  capacity: null,
+  readability: null,
+  budget: null,
+  pending: null,
+  stage: null
+};
 
-function reset() {
-  state = {
-    stage: 'start',
-    category: null,
-    material: null,
-    use: null,
-    capacity: null,
-    readability: null,
-    budget: null,
-    query: ''
-  };
-}
-
-reset();
-
-function norm(s) {
-  return String(s ?? '')
+function normalize(value) {
+  return String(value ?? "")
     .toLowerCase()
-    .replace(/[’`]/g, "'")
-    .replace(/\u00a0/g, ' ')
-    .replace(/,/g, '.')
-    .replace(/\s+/g, ' ')
+    .replace(/[’ʼ`]/g, "'")
+    .replace(/,/g, ".")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-function txt(p) {
-  return norm([
-    p.name,
-    p.description,
-    p.details
-  ].filter(Boolean).join(' '));
+function resetState() {
+  state = {
+    category: null,
+    material: null,
+    purpose: null,
+    capacity: null,
+    readability: null,
+    budget: null,
+    pending: null,
+    stage: null
+  };
 }
 
-function say(text, role = 'bot') {
-  const div = document.createElement('div');
-  div.className = 'message ' + role;
-  div.textContent = text;
-  messages.appendChild(div);
-  scroll();
+function addMessage(text, role = "bot") {
+  const el = document.createElement("div");
+  el.className = "message " + role;
+  el.textContent = text;
+  messages.appendChild(el);
+  scrollDown();
 }
 
-function scroll() {
-  requestAnimationFrame(() => {
-    messages.scrollTop = messages.scrollHeight;
-  });
+function scrollDown() {
+  messages.scrollTop = messages.scrollHeight;
 }
 
-function buttons(options) {
-  const box = document.createElement('div');
-  box.className = 'actions';
+function addChoices(items) {
+  const box = document.createElement("div");
+  box.className = "actions";
 
-  options.forEach(option => {
-    const label = typeof option === 'string'
-      ? option : option.label;
+  for (const item of items) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "choice";
+    button.textContent = item;
 
-    const value = typeof option === 'string'
-      ? option : option.value;
+    button.addEventListener("click", () => {
+      box.remove();
+      handle(item);
+    });
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'choice';
-    button.textContent = label;
-    button.onclick = () => handle(label, value);
     box.appendChild(button);
-  });
+  }
 
   messages.appendChild(box);
-  scroll();
+  scrollDown();
 }
 
-function validUrl(url) {
+function safeUrl(value) {
   try {
-    const u = new URL(url);
-    return u.protocol === 'https:' &&
-      u.hostname === 'labzona.com.ua' &&
-      u.pathname.startsWith('/shop/');
+    const url = new URL(String(value || ""));
+
+    return (
+      url.protocol === "https:" &&
+      url.hostname === "labzona.com.ua" &&
+      url.pathname.startsWith("/shop/")
+    );
   } catch {
     return false;
   }
 }
 
-function price(p) {
-  const raw = String(p.price ?? '')
-    .replace(/\s/g, '')
-    .replace(',', '.');
-
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : null;
+function productText(product) {
+  return normalize([
+    product.name,
+    product.description,
+    product.details
+  ].join(" "));
 }
 
-function money(n) {
-  return n.toLocaleString('uk-UA') + ' грн';
-}
-
-function cleanDescription(s) {
-  return String(s || '')
-    .replace(/(?:\+?38\s*)?(?:\(?0\d{2}\)?[\s-]*)?\d{3}[\s-]*\d{2}[\s-]*\d{2}/g, '')
-    .replace(/(?:дзвоніть|тел\.?|консультація|замовляй|купити в лабзоні)[^.!?]{0,80}[.!?]?/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 210);
-}
-
-const categories = {
-  scale: {
-    title: 'Аналітичні ваги',
-    name: /ваги|ваг|balance/i,
-    exclude: /ювелірн|кухонн|торгов|чашк|гир[яі]|аксесуар|адаптер|платформ|тензодатчик/i
-  },
-  ph: {
-    title: 'pH-метр',
-    name: /ph[\s-]?метр|рн[\s-]?метр|ph\s*tester|кислотномір|ph\s*checker/i,
-    exclude: /буфер|розчин|електрод|реактив|порошок|капсул/i
-  },
-  thermometer: {
-    title: 'Термометр',
-    name: /термометр|термощуп|temperature\s*(meter|probe)/i,
-    exclude: /гігрометр|термогігрометр|чохол|батарейк|запасн/i
-  },
-  hygrometer: {
-    title: 'Гігрометр',
-    name: /гігрометр|термогігрометр|hygrometer/i,
-    exclude: /запасн|чохол|батарейк|таблиц/i
-  },
-  moisture: {
-    title: 'Вологомір',
-    name: /вологомір|влагомер|moisture\s*meter/i,
-    exclude: /чашк|ваг[ -]?вологомір|аксесуар|електрод\s+запасн|чохол/i
+function parsePrice(value) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0
+      ? value
+      : null;
   }
-};
 
-function categoryFrom(s) {
-  const t = norm(s);
+  const raw = String(value ?? "")
+    .replace(/\s/g, "")
+    .replace(/грн|uah/gi, "")
+    .replace(",", ".");
 
-  if (/вологомір|влагомер|moisture/.test(t))
-    return 'moisture';
+  const number = Number(raw);
 
-  if (/гігрометр|термогігрометр/.test(t))
-    return 'hygrometer';
+  return Number.isFinite(number) && number > 0
+    ? number
+    : null;
+}
 
-  if (/ph[ -]?метр|рн[ -]?метр|кислотномір|ph\s*tester/.test(t))
-    return 'ph';
+function priceLabel(product) {
+  const price = parsePrice(product.price);
 
-  if (/термометр|термощуп/.test(t))
-    return 'thermometer';
+  return price === null
+    ? "Ціна: уточніть у менеджера"
+    : "Ціна: " +
+      price.toLocaleString("uk-UA") +
+      " грн";
+}
 
-  if (/ваг|зважуван|balance/.test(t))
-    return 'scale';
+function getCategory(query) {
+  const text = normalize(query);
+
+  if (/волого(мір|мер)|вимірювач вологості/.test(text)) {
+    return "moisture";
+  }
+
+  if (/гігрометр|гигрометр|віт[- ]?[12]/.test(text)) {
+    return "hygrometer";
+  }
+
+  if (/ph[- ]?метр|рн[- ]?метр|pн[- ]?метр|кислотност/.test(text)) {
+    return "ph";
+  }
+
+  if (/термометр|температурн.*датчик/.test(text)) {
+    return "thermometer";
+  }
+
+  if (/ваг[иа]|зважуван|терез/.test(text)) {
+    return "scales";
+  }
 
   return null;
 }
 
-function materialFrom(s) {
-  const t = norm(s);
+function getMaterial(query) {
+  const text = normalize(query);
 
-  if (/зерн|насін|пшениц|кукурудз|ячмін|ріпак|соняшник/.test(t))
-    return 'grain';
+  if (/зерн|пшениц|ячмен|кукурудз|ріпак/.test(text)) {
+    return "grain";
+  }
 
-  if (/ґрунт|грунт|soil|теплиц|саджанц/.test(t))
-    return 'soil';
+  if (/ґрунт|грунт|soil|земл|теплиц/.test(text)) {
+    return "soil";
+  }
 
-  if (/сіно|солом|корм|hay/.test(t))
-    return 'hay';
-
-  if (/деревин|дерев|wood/.test(t))
-    return 'wood';
+  if (/сін|сено|солом/.test(text)) {
+    return "hay";
+  }
 
   return null;
 }
 
-function useFrom(s) {
-  const t = norm(s);
+function getPurpose(query) {
+  const text = normalize(query);
 
-  if (/холодиль|морозиль|склад|зберіган/.test(t))
-    return 'cold';
+  if (/холодильник|морозильник|холодильн/.test(text)) {
+    return "fridge";
+  }
 
-  if (/харч|насср|хассп|їж|продукт|кухн/.test(t))
-    return 'food';
+  if (/харчов|продукт|haccp|хассп|насср/.test(text)) {
+    return "food";
+  }
 
-  if (/лаборатор|дослідж|аналіз/.test(t))
-    return 'lab';
+  if (/вод[аиу]|розчин|рідина|жидкост/.test(text)) {
+    return "water";
+  }
 
-  if (/виробниц|промислов/.test(t))
-    return 'industry';
+  if (/лаборатор/.test(text)) {
+    return "laboratory";
+  }
 
-  if (/господар|ферм|поле/.test(t))
-    return 'farm';
+  if (/виробництв/.test(text)) {
+    return "production";
+  }
 
   return null;
 }
 
-function parseBudget(s) {
-  const t = norm(s).replace(/(\d)\s+(?=\d{3}(?:\D|$))/g, '$1');
+function getBudget(query) {
+  const text = normalize(query);
 
-  let m = t.match(
-    /(?:до|бюджет|не\s+дорожче|максимум|в\s+межах|за)\s*(\d{3,7})/
-  );
-
-  if (!m) {
-    m = t.match(/(\d{3,7})\s*(?:грн|₴)/);
+  if (/без обмежень|будь-як.*бюджет|неважлив.*цін/.test(text)) {
+    return Infinity;
   }
 
-  return m ? Number(m[1]) : null;
-}
-
-function detectCapacity(s) {
-  const t = norm(s);
-  const m = t.match(
-    /(?:навантаження|нгз|нпв|max|ваги)\s*[:= -]*\s*(\d+(?:\.\d+)?)\s*(?:г|g)(?![\p{L}])/u
-  );
-  return m ? Number(m[1]) : null;
-}
-
-function detectReadability(s) {
-  const t = norm(s);
-  const m = t.match(
-    /(?:дискретність|крок|ціна поділки|readability)\s*[:= -]*\s*(0\.\d+)\s*(мг|mg|г|g)(?![\p{L}])/u
+  const match = text.match(
+    /(?:до|не більше|бюджет|максимум|ціна)\s*[:\-]?\s*(\d[\d\s]*)\s*(тис(?:яч)?|к|грн|uah)?/
   );
 
-  if (!m) return null;
+  if (!match) return null;
 
-  let value = Number(m[1]);
-  if (m[2] === 'мг' || m[2] === 'mg') value /= 1000;
+  let amount = Number(match[1].replace(/\s/g, ""));
 
-  return value;
-}
-
-function isMain(p, category) {
-  const name = norm(p.name);
-  const spec = categories[category];
-
-  if (!spec) return false;
-  if (!spec.name.test(name)) return false;
-  if (spec.exclude.test(name)) return false;
-
-  if (category === 'scale') {
-    return /аналітичн|analytical|radwag\s+as|ohaus\s+ax|axis\s+ang/.test(name);
+  if (/^(тис|к)/.test(match[2] || "")) {
+    amount *= 1000;
   }
 
-  return true;
+  return amount > 0 ? amount : null;
 }
 
-function materialMatch(p, material) {
-  if (!material) return true;
+function getCapacity(query) {
+  const text = normalize(query);
 
-  const name = norm(p.name);
-  const text = txt(p);
+  const match = text.match(
+    /(\d+(?:\.\d+)?)\s*(кг|г|kg|g)(?=\s|$|[,;\/])/
+  );
 
-  const patterns = {
-    grain: /зерн|насін|пшениц|кукурудз|wille|wile|kett\s*pm|всп[- ]?100|he\s*lite/i,
-    soil: /ґрунт|грунт|soil|мг[- ]?44/i,
-    hay: /сіно|солом|корм|hay/i,
-    wood: /деревин|дерев|wood/i
-  };
+  if (!match) return null;
 
-  if (!patterns[material].test(text)) return false;
+  const amount = Number(match[1]);
 
-  if (material === 'grain' &&
-      /ґрунт|грунт|soil/.test(name) &&
-      !patterns.grain.test(name)) return false;
-
-  if (material === 'soil' &&
-      /зерн|насін/.test(name) &&
-      !patterns.soil.test(name)) return false;
-
-  return true;
+  return /кг|kg/.test(match[2])
+    ? amount * 1000
+    : amount;
 }
 
-function contextScore(p, use) {
-  if (!use) return 0;
+function getReadability(query) {
+  const text = normalize(query);
 
-  const text = txt(p);
+  const match = text.match(
+    /(?:дискретніст[ья]|крок зважування|ціна поділки|readability|точніст[ью]?|\/)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)(?=\s|$|[,;\/])/
+  );
 
-  const patterns = {
-    cold: /холодиль|морозиль|низьк.{0,10}температур|зберіган/,
-    food: /харч|продукт|haccp|насср|хассп|щуп/,
-    lab: /лаборатор|аналітич|дослідж|проб/,
-    industry: /виробниц|промислов|технічн/,
-    farm: /ферм|господар|зерн|поле/
-  };
+  if (!match) return null;
 
-  return patterns[use] && patterns[use].test(text) ? 3 : 0;
+  const amount = Number(match[1]);
+
+  return /мг|mg/.test(match[2])
+    ? amount / 1000
+    : amount;
 }
 
-function specValues(p, type) {
-  const text = txt(p);
-  const name = norm(p.name);
-  const result = [];
-
-  const number = '(\\d+(?:\\.\\d+)?)';
+function extractSpecifications(product) {
+  const text = productText(product);
+  const capacities = [];
+  const readability = [];
 
   const capacityPatterns = [
-    new RegExp(
-      '(?:нгз|нпв|максимальн[^:;]{0,45}(?:навантаженн|зважуван|мас)|max(?:imum)?\\s*(?:capacity)?|межа\\s+зважування)\\s*[:=–-]?\\s*' +
-      number + '\\s*(кг|kg|г|g)(?![\\p{L}])', 'gu'
-    ),
-    /(?:^|[ ,;—-])(\d+(?:\.\d+)?)\s*(г|g)\s*\/\s*0\.\d+\s*(?:г|g)/gu
+    /(?:нгз|нпв|max|максимальне навантаження|найбільша границя зважування)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(кг|г|kg|g)(?=\s|$|[,;\/])/g,
+    /(\d+(?:\.\d+)?)\s*(кг|г|kg|g)\s*\/\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)(?=\s|$|[,;\/])/g
   ];
 
-  const precisionPatterns = [
-    new RegExp(
-      '(?:дискретніст\\p{L}*|ціна\\s+поділк\\p{L}*|крок\\s+зважування|readability|resolution|d\\s*=)\\s*[:=–-]?\\s*' +
-      number + '\\s*(мг|mg|г|g)(?![\\p{L}])', 'gu'
-    ),
-    /\d+(?:\.\d+)?\s*(?:г|g)\s*\/\s*(0\.\d+)\s*(мг|mg|г|g)(?![\p{L}])/gu
-  ];
-
-  const patterns = type === 'capacity'
-    ? capacityPatterns : precisionPatterns;
-
-  for (const re of patterns) {
-    for (const match of text.matchAll(re)) {
-      let value = Number(match[1]);
+  for (const pattern of capacityPatterns) {
+    for (const match of text.matchAll(pattern)) {
+      const amount = Number(match[1]);
       const unit = match[2];
 
-      if (type === 'capacity' &&
-          (unit === 'кг' || unit === 'kg')) value *= 1000;
-
-      if (type === 'readability' &&
-          (unit === 'мг' || unit === 'mg')) value /= 1000;
-
-      if (value > 0) result.push(value);
+      capacities.push(
+        /кг|kg/.test(unit) ? amount * 1000 : amount
+      );
     }
   }
 
-  if (type === 'capacity') {
-    const match = name.match(
-      /(?:^|[ ,—-])(\d+(?:\.\d+)?)\s*(г|g)(?![\p{L}])/u
-    );
-    if (match) result.push(Number(match[1]));
-  }
+  const readabilityPatterns = [
+    /(?:дискретність|ціна поділки|readability|крок зважування)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)(?=\s|$|[,;\/])/g,
+    /(\d+(?:\.\d+)?)\s*(кг|г|kg|g)\s*\/\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)(?=\s|$|[,;\/])/g
+  ];
 
-  if (type === 'readability') {
-    const match = name.match(
-      /(?:^|[ ,\/—-])(0\.\d+)\s*(мг|mg|г|g)(?![\p{L}])/u
-    );
-    if (match) {
-      let value = Number(match[1]);
-      if (match[2] === 'мг' || match[2] === 'mg')
-        value /= 1000;
-      result.push(value);
+  for (const pattern of readabilityPatterns) {
+    for (const match of text.matchAll(pattern)) {
+      let amount;
+      let unit;
+
+      if (match.length >= 5) {
+        amount = Number(match[3]);
+        unit = match[4];
+      } else {
+        amount = Number(match[1]);
+        unit = match[2];
+      }
+
+      readability.push(
+        /мг|mg/.test(unit) ? amount / 1000 : amount
+      );
     }
   }
 
-  return [...new Set(result)];
+  // Support compact specifications in product titles,
+  // such as "220 г, 0,0001 г".
+  const compact = text.match(
+    /(\d+(?:\.\d+)?)\s*г\s*[,;/]\s*(0\.\d+)\s*г(?=\s|$|[,;\/])/
+  );
+
+  if (compact) {
+    capacities.push(Number(compact[1]));
+    readability.push(Number(compact[2]));
+  }
+
+  return {
+    capacities: [...new Set(capacities)],
+    readability: [...new Set(readability)]
+  };
 }
 
-function near(a, b) {
-  return Math.abs(a - b) < Math.max(1e-8, b * 0.00001);
+function sameNumber(a, b) {
+  return Math.abs(a - b) <
+    Math.max(0.00000001, Math.abs(b) * 0.000001);
 }
 
-function searchProducts() {
-  let list = products.filter(p => validUrl(p.url));
-  const category = state.category;
+function isEquipment(product, category) {
+  const name = normalize(product.name);
 
-  if (category) {
-    list = list.filter(p => isMain(p, category));
+  if (category === "scales") {
+    return (
+      /ваг|balance|scale/.test(name) &&
+      !/чашк|гир[яі]|аксесуар|платформ|кабел|блок живлення/.test(name)
+    );
   }
 
-  if (category === 'moisture' && state.material) {
-    list = list.filter(p => materialMatch(p, state.material));
+  if (category === "ph") {
+    return (
+      /ph[- ]?метр|рн[- ]?метр|кислотномір/.test(name) &&
+      !/розчин|буфер|електрод|калібрувальн|реактив|тест-смуж/.test(name)
+    );
   }
 
-  if (state.budget !== null && state.budget > 0) {
-    list = list.filter(p => {
-      const value = price(p);
-      return value !== null && value <= state.budget;
-    });
+  if (category === "thermometer") {
+    return (
+      /термометр/.test(name) &&
+      !/чохол|футляр|зонд окремо|кабел/.test(name)
+    );
   }
 
+  if (category === "hygrometer") {
+    return (
+      /гігрометр|гигрометр/.test(name) &&
+      !/запчастин|чохол|футляр/.test(name)
+    );
+  }
+
+  if (category === "moisture") {
+    return (
+      /вологомір|влагомер/.test(name) &&
+      !/чашк|аксесуар|контейнер|калібрувальн|запчастин/.test(name)
+    );
+  }
+
+  return true;
+}
+
+function materialMatches(product, material) {
+  if (!material) return true;
+
+  const name = normalize(product.name);
+  const text = productText(product);
+
+  if (material === "grain") {
+    return /зерн|пшениц|ячмен|кукурудз|ріпак/.test(name);
+  }
+
+  if (material === "soil") {
+    return /ґрунт|грунт|soil/.test(name);
+  }
+
+  if (material === "hay") {
+    return /сін|сено|солом/.test(name) ||
+      /сін|сено|солом/.test(text);
+  }
+
+  return true;
+}
+
+function purposeScore(product, purpose) {
+  if (!purpose) return 0;
+
+  const text = productText(product);
+
+  const patterns = {
+    fridge: /холодильник|морозильник|холодильн/,
+    food: /харчов|продукт|haccp|хассп|насср/,
+    water: /вод[аиу]|розчин|рідина/,
+    laboratory: /лаборатор/,
+    production: /виробництв/
+  };
+
+  return patterns[purpose]?.test(text) ? 10 : 0;
+}
+
+function evaluateProduct(product) {
+  if (!safeUrl(product.url)) return null;
+
+  if (state.category &&
+      !isEquipment(product, state.category)) {
+    return null;
+  }
+
+  if (state.category === "moisture" &&
+      !materialMatches(product, state.material)) {
+    return null;
+  }
+
+  const price = parsePrice(product.price);
+
+  if (
+    state.budget !== null &&
+    state.budget !== Infinity &&
+    price !== null &&
+    price > state.budget
+  ) {
+    return null;
+  }
+
+  const specs = extractSpecifications(product);
   const confirmed = [];
-  const unverified = [];
+  const unknown = [];
 
-  for (const p of list) {
-    let score = 0;
-    const uncertainty = [];
-
-    if (category === 'scale') {
-      const capacities = specValues(p, 'capacity');
-      const steps = specValues(p, 'readability');
-
-      if (state.capacity !== null && state.capacity > 0) {
-        if (capacities.length &&
-            !capacities.some(v => near(v, state.capacity))) continue;
-
-        if (!capacities.length) {
-          uncertainty.push('максимальне навантаження');
-        } else {
-          score += 8;
+  if (state.category === "scales") {
+    if (state.capacity !== null) {
+      if (specs.capacities.length) {
+        if (!specs.capacities.some(
+          value => sameNumber(value, state.capacity)
+        )) {
+          return null;
         }
-      }
 
-      if (state.readability !== null &&
-          state.readability > 0) {
-        if (steps.length &&
-            !steps.some(v => near(v, state.readability))) continue;
-
-        if (!steps.length) {
-          uncertainty.push('дискретність');
-        } else {
-          score += 8;
-        }
+        confirmed.push(
+          "навантаження " + state.capacity + " г"
+        );
+      } else {
+        unknown.push("максимальне навантаження");
       }
     }
 
-    if (category === 'moisture' && state.material) {
-      const name = norm(p.name);
-      const patterns = {
-        grain: /зерн|насін|wille|wile|kett\s*pm|всп[- ]?100|he\s*lite/,
-        soil: /ґрунт|грунт|soil|мг[- ]?44/,
-        hay: /сіно|солом|hay/,
-        wood: /дерев|wood/
-      };
+    if (state.readability !== null) {
+      if (specs.readability.length) {
+        if (!specs.readability.some(
+          value => sameNumber(value, state.readability)
+        )) {
+          return null;
+        }
 
-      score += patterns[state.material].test(name) ? 8 : 1;
-    }
-
-    score += contextScore(p, state.use);
-
-    if (state.budget > 0 && price(p) !== null) {
-      score += Math.max(0, 2 - price(p) / state.budget);
-    }
-
-    const item = { p, score, uncertainty };
-
-    if (uncertainty.length) {
-      unverified.push(item);
-    } else {
-      confirmed.push(item);
+        confirmed.push(
+          "дискретність " +
+          String(state.readability).replace(".", ",") +
+          " г"
+        );
+      } else {
+        unknown.push("дискретність");
+      }
     }
   }
 
-  const sorter = (a, b) =>
-    b.score - a.score ||
-    (price(a.p) ?? Infinity) - (price(b.p) ?? Infinity);
+  if (
+    state.budget !== null &&
+    state.budget !== Infinity &&
+    price === null
+  ) {
+    unknown.push("ціну");
+  }
 
-  confirmed.sort(sorter);
-  unverified.sort(sorter);
+  let score = 0;
 
-  return { confirmed, unverified };
+  score += confirmed.length * 30;
+  score += purposeScore(product, state.purpose);
+
+  if (price !== null) score += 3;
+
+  if (unknown.length === 0) score += 20;
+
+  return {
+    product,
+    price,
+    confirmed,
+    unknown,
+    score
+  };
 }
 
-function showCard(entry) {
-  const p = entry.p;
+function cleanDescription(product) {
+  let text = String(product.description || "")
+    .replace(/(?:\+?38)?[\s(.-]*0\d[\d\s().-]{7,}/g, "")
+    .replace(/працюємо\s*24\s*\/\s*7/gi, "")
+    .replace(/доставка по україні/gi, "")
+    .replace(/в наявності/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const card = document.createElement('article');
-  card.className = 'product';
+  if (text.length > 180) {
+    text = text.slice(0, 180).replace(/\s+\S*$/, "") + "…";
+  }
 
-  const link = document.createElement('a');
-  link.href = p.url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.textContent = p.name;
-  card.appendChild(link);
+  return text;
+}
 
-  const priceDiv = document.createElement('div');
-  priceDiv.className = 'price';
-  priceDiv.textContent = 'Ціна: ' +
-    (price(p) === null
-      ? 'уточніть у менеджера'
-      : money(price(p)));
+function showCard(result) {
+  const { product, confirmed, unknown } = result;
 
-  card.appendChild(priceDiv);
+  const card = document.createElement("div");
+  card.className = "product";
 
-  const description = cleanDescription(p.description);
+  const link = document.createElement("a");
+  link.href = product.url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = product.name;
+
+  const price = document.createElement("div");
+  price.className = "price";
+  price.textContent = priceLabel(product);
+
+  card.append(link, price);
+
+  const description = cleanDescription(product);
 
   if (description) {
-    const desc = document.createElement('div');
-    desc.className = 'details';
+    const desc = document.createElement("div");
+    desc.className = "detail";
     desc.textContent = description;
     card.appendChild(desc);
   }
 
-  const status = document.createElement('div');
-  status.className = 'status';
+  if (confirmed.length) {
+    const match = document.createElement("div");
+    match.className = "match";
 
-  status.textContent = entry.uncertainty.length
-    ? 'Потрібно уточнити: ' +
-      entry.uncertainty.join(', ') + '.'
-    : 'Попередній підбір за каталогом. Перевірте характеристики перед замовленням.';
+    const strong = document.createElement("strong");
+    strong.textContent = "Підтверджено: ";
 
-  card.appendChild(status);
+    match.appendChild(strong);
+    match.appendChild(
+      document.createTextNode(confirmed.join(", ") + ".")
+    );
+
+    card.appendChild(match);
+  }
+
+  if (unknown.length) {
+    const notice = document.createElement("div");
+    notice.className = "notice";
+
+    notice.textContent =
+      "Потрібно уточнити: " +
+      unknown.join(", ") + ".";
+
+    card.appendChild(notice);
+  }
+
   messages.appendChild(card);
 }
 
-function showResults() {
-  state.stage = 'done';
+function showRecommendations() {
+  const results = products
+    .map(evaluateProduct)
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score);
 
-  const { confirmed, unverified } = searchProducts();
+  const confirmed = results.filter(
+    item => item.unknown.length === 0
+  );
 
-  if (!confirmed.length && !unverified.length) {
-    say(
-      'Не знайшла відповідних приладів у каталозі за цими умовами. ' +
-      'Можна змінити бюджет або уточнити запит у менеджера.'
+  const uncertain = results.filter(
+    item => item.unknown.length > 0
+  );
+
+  if (!results.length) {
+    addMessage(
+      "За заданими параметрами не знайшла відповідних товарів у каталозі. Можемо змінити умови або уточнити наявність у менеджера."
     );
 
-    buttons(['Новий пошук', "Зв'язатися з менеджером"]);
+    addChoices([
+      "Новий пошук",
+      "Зв'язатися з менеджером"
+    ]);
+
     return;
   }
 
   if (confirmed.length) {
-    say(
-      'Знайдено ' + confirmed.length +
-      ' відповідних товарів за доступними даними каталогу.'
+    addMessage(
+      "Знайдено " +
+      confirmed.length +
+      " товарів, які відповідають доступним даним каталогу."
     );
 
     confirmed.slice(0, 5).forEach(showCard);
   }
 
-  if (unverified.length) {
-    say(confirmed.length
-      ? 'Також є моделі, для яких потрібно уточнити характеристики:'
-      : 'Є можливі варіанти, але не всі характеристики підтверджені в каталозі:'
+  if (uncertain.length) {
+    addMessage(
+      confirmed.length
+        ? "Також є моделі, для яких потрібно уточнити окремі характеристики:"
+        : "Є потенційно відповідні моделі, але частину параметрів потрібно уточнити:"
     );
 
-    unverified.slice(0, 3).forEach(showCard);
+    uncertain.slice(0, 3).forEach(showCard);
   }
 
-  buttons(['Новий пошук', "Зв'язатися з менеджером"]);
-  scroll();
+  addChoices([
+    "Новий пошук",
+    "Зв'язатися з менеджером"
+  ]);
+
+  scrollDown();
 }
 
-function askNext() {
-  if (state.category === 'moisture' && !state.material) {
-    state.stage = 'material';
-    say('Вологість якого матеріалу потрібно вимірювати?');
+function askBudget() {
+  state.stage = "budget";
 
-    buttons([
-      { label: 'Зерно', value: 'grain' },
-      { label: 'Ґрунт', value: 'soil' },
-      { label: 'Сіно або солома', value: 'hay' },
-      { label: 'Деревина', value: 'wood' },
-      { label: 'Інший матеріал', value: 'other' }
-    ]);
+  addMessage(
+    "Який орієнтовний бюджет? Можна написати суму, наприклад «до 15000 грн»."
+  );
+
+  addChoices([
+    "До 1000 грн",
+    "До 5000 грн",
+    "До 10000 грн",
+    "До 15000 грн",
+    "Без обмежень"
+  ]);
+}
+
+function askPurpose() {
+  state.stage = "purpose";
+
+  addMessage(
+    "Для яких умов або завдань потрібен прилад?"
+  );
+
+  addChoices([
+    "Для лабораторії",
+    "Для виробництва",
+    "Для господарства",
+    "Не знаю"
+  ]);
+}
+
+function askMoistureMaterial() {
+  state.stage = "material";
+
+  addMessage("Вологість якого матеріалу потрібно вимірювати?");
+
+  addChoices([
+    "Зерно",
+    "Ґрунт",
+    "Сіно або солома",
+    "Інші матеріали"
+  ]);
+}
+
+function askCapacity() {
+  state.stage = "capacity";
+
+  addMessage(
+    "Яке максимальне навантаження ваг потрібне?"
+  );
+
+  addChoices([
+    "120 г",
+    "200 г",
+    "220 г",
+    "Не знаю"
+  ]);
+}
+
+function askReadability() {
+  state.stage = "readability";
+
+  addMessage(
+    "Яка дискретність (крок зважування) потрібна?"
+  );
+
+  addChoices([
+    "0,0001 г",
+    "0,001 г",
+    "0,01 г",
+    "Не знаю"
+  ]);
+}
+
+function continueConsultation() {
+  if (
+    state.category === "moisture" &&
+    !state.material
+  ) {
+    askMoistureMaterial();
     return;
   }
 
-  if (state.category === 'scale' &&
-      state.capacity === null) {
-    state.stage = 'capacity';
-    say('Яке максимальне навантаження потрібне?');
-    buttons(['120 г', '200 г', '220 г', 'Не знаю']);
-    return;
+  if (state.category === "scales") {
+    if (state.capacity === null &&
+        state.stage !== "capacity_done") {
+      askCapacity();
+      return;
+    }
+
+    if (state.readability === null &&
+        state.stage !== "readability_done") {
+      askReadability();
+      return;
+    }
   }
 
-  if (state.category === 'scale' &&
-      state.readability === null) {
-    state.stage = 'readability';
-    say('Яка дискретність (найменший крок зважування) потрібна?');
-    buttons(['0,0001 г', '0,001 г', '0,01 г', 'Не знаю']);
-    return;
-  }
-
-  if (['thermometer', 'hygrometer', 'ph']
-      .includes(state.category) && !state.use) {
-    state.stage = 'use';
-    say('Для яких умов або завдань потрібен прилад?');
-
-    buttons(state.category === 'thermometer'
-      ? [
-          'Для холодильника',
-          'Для харчових продуктів',
-          'Для лабораторії',
-          'Для виробництва',
-          'Не знаю'
-        ]
-      : [
-          'Для лабораторії',
-          'Для виробництва',
-          'Для господарства',
-          'Не знаю'
-        ]
-    );
+  if (
+    state.category === "ph" &&
+    !state.purpose &&
+    state.stage !== "purpose_done"
+  ) {
+    askPurpose();
     return;
   }
 
   if (state.budget === null) {
-    state.stage = 'budget';
-
-    say(
-      'Який орієнтовний бюджет? ' +
-      'Можна написати суму, наприклад «до 15000 грн».'
-    );
-
-    buttons([
-      'До 1000 грн',
-      'До 5000 грн',
-      'До 10000 грн',
-      'До 15000 грн',
-      'Без обмежень'
-    ]);
+    askBudget();
     return;
   }
 
-  showResults();
+  state.stage = "results";
+  showRecommendations();
 }
 
-function parseFreeQuery(s) {
-  state.query = s;
-  state.category = categoryFrom(s);
-  state.material = materialFrom(s);
-  state.use = useFrom(s);
-  state.budget = parseBudget(s);
+function applyInitialQuery(text) {
+  resetState();
 
-  if (state.category === 'scale') {
-    state.capacity = detectCapacity(s);
-    state.readability = detectReadability(s);
+  state.category = getCategory(text);
+  state.material = getMaterial(text);
+  state.purpose = getPurpose(text);
+  state.budget = getBudget(text);
+
+  if (state.category === "scales") {
+    state.capacity = getCapacity(text);
+    state.readability = getReadability(text);
   }
 
   if (!state.category) {
-    const words = norm(s)
-      .split(/\s+/)
-      .filter(w => w.length > 3);
-
-    const matches = products
-      .filter(p => validUrl(p.url))
-      .map(p => {
-        const name = norm(p.name);
-        const score = words.reduce(
-          (sum, w) => sum + (name.includes(w) ? 3 : 0), 0
-        );
-
-        return { p, score, uncertainty: [] };
-      })
-      .filter(x => x.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
-
-    if (matches.length) {
-      say(
-        'Знайшла товари за назвою. ' +
-        'Для точного підбору уточніть призначення та характеристики.'
-      );
-
-      matches.forEach(showCard);
-    } else {
-      say(
-        'Не вдалося визначити тип обладнання. ' +
-        'Спробуйте вказати назву приладу або виберіть категорію.'
-      );
-    }
-
-    buttons(['Новий пошук', "Зв'язатися з менеджером"]);
-    state.stage = 'done';
-    return;
-  }
-
-  askNext();
-}
-
-function contactManager() {
-  say(
-    'Менеджер Лабзони допоможе уточнити характеристики, ' +
-    'наявність і умови замовлення.\nТелефон: ' + PHONE
-  );
-
-  const link = document.createElement('a');
-  link.href = 'tel:+380505956447';
-  link.textContent = 'Зателефонувати менеджеру';
-  link.style.color = '#c91d2c';
-  link.style.display = 'block';
-  link.style.marginBottom = '15px';
-
-  messages.appendChild(link);
-  scroll();
-}
-
-function handle(label, value = label) {
-  if (!loaded) {
-    say('Каталог ще завантажується. Спробуйте за кілька секунд.');
-    return;
-  }
-
-  const s = String(label).trim();
-  if (!s) return;
-
-  say(s, 'user');
-
-  if (/новий пошук|спочатку|скинути/i.test(s)) {
-    reset();
-
-    say(
-      'Що потрібно підібрати? ' +
-      'Можете вибрати категорію або описати потребу своїми словами.'
+    addMessage(
+      "Уточніть, будь ласка, який саме прилад потрібен. Можна обрати категорію або написати назву."
     );
 
-    buttons([
-      'Аналітичні ваги',
-      'pH-метр',
-      'Термометр',
-      'Гігрометр',
-      'Вологомір'
+    addChoices([
+      "Аналітичні ваги",
+      "pH-метр",
+      "Термометр",
+      "Гігрометр",
+      "Вологомір"
     ]);
+
     return;
   }
 
-  if (/зв.?язатися з менеджером/i.test(s)) {
-    contactManager();
-    return;
-  }
-
-  if (state.stage === 'material') {
-    if (value === 'other') {
-      state.stage = 'otherMaterial';
-      say('Напишіть, який матеріал потрібно перевіряти.');
-      return;
-    }
-
-    state.material = value;
-    askNext();
-    return;
-  }
-
-  if (state.stage === 'otherMaterial') {
-    state.material = materialFrom(s);
-
-    if (!state.material) {
-      say(
-        'Для цього матеріалу немає окремого перевіреного фільтра. ' +
-        'Рекомендую уточнити сумісність приладу в менеджера.'
+  // When all relevant specifications are already present,
+  // do not ask for them again.
+  if (
+    state.category === "scales" &&
+    state.capacity !== null &&
+    state.readability !== null
+  ) {
+    if (state.budget === null) {
+      addMessage(
+        "Знайшла параметри: " +
+        state.capacity +
+        " г, дискретність " +
+        String(state.readability).replace(".", ",") +
+        " г. Покажу відповідні моделі без обмеження бюджету."
       );
 
-      buttons(['Новий пошук', "Зв'язатися з менеджером"]);
-      state.stage = 'done';
-      return;
+      state.budget = Infinity;
     }
 
-    askNext();
+    showRecommendations();
+    state.stage = "results";
     return;
   }
 
-  if (state.stage === 'capacity') {
-    if (/не знаю/i.test(s)) {
-      state.capacity = 0;
-    } else {
-      state.capacity = detectCapacity('навантаження ' + s);
-    }
-
-    if (state.capacity === null) {
-      say('Напишіть навантаження у грамах, наприклад 220 г.');
-      return;
-    }
-
-    askNext();
-    return;
-  }
-
-  if (state.stage === 'readability') {
-    if (/не знаю/i.test(s)) {
-      state.readability = 0;
-    } else {
-      state.readability = detectReadability('дискретність ' + s);
-    }
-
-    if (state.readability === null) {
-      say('Напишіть значення, наприклад 0,0001 г або 0,1 мг.');
-      return;
-    }
-
-    askNext();
-    return;
-  }
-
-  if (state.stage === 'use') {
-    state.use = /не знаю/i.test(s)
-      ? 'unknown'
-      : useFrom(s) || 'unknown';
-
-    askNext();
-    return;
-  }
-
-  if (state.stage === 'budget') {
-    if (/без обмежень/i.test(s)) {
-      state.budget = 0;
-    } else {
-      const budget = parseBudget(s);
-
-      if (budget === null) {
-        say(
-          'Напишіть суму, наприклад «до 10000 грн», ' +
-          'або виберіть «Без обмежень».'
-        );
-        return;
-      }
-
-      state.budget = budget;
-    }
-
-    showResults();
-    return;
-  }
-
-  reset();
-  parseFreeQuery(s);
+  continueConsultation();
 }
 
-document.getElementById('form').addEventListener('submit', e => {
-  e.preventDefault();
+function handle(text) {
+  const value = String(text || "").trim();
 
-  const text = input.value.trim();
-  if (!text) return;
+  if (!value) return;
 
-  input.value = '';
-  handle(text);
-});
+  addMessage(value, "user");
 
-async function init() {
+  if (!loaded) {
+    addMessage("Каталог ще завантажується.");
+    return;
+  }
+
+  if (/^новий пошук$/i.test(value)) {
+    resetState();
+
+    addMessage("Яке обладнання шукаєте?");
+
+    addChoices([
+      "Аналітичні ваги",
+      "pH-метр",
+      "Термометр",
+      "Гігрометр",
+      "Вологомір"
+    ]);
+
+    return;
+  }
+
+  if (/^зв'язатися з менеджером$/i.test(value)) {
+    addMessage(
+      "Для консультації з менеджером Лабзони телефонуйте: 050 595 64 47. Також можна перейти на сайт Лабзони."
+    );
+
+    const box = document.createElement("div");
+    box.className = "actions";
+
+    const link = document.createElement("a");
+    link.className = "choice";
+    link.href = MANAGER_URL;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Перейти на сайт Лабзони";
+
+    box.appendChild(link);
+    messages.appendChild(box);
+    scrollDown();
+    return;
+  }
+
+  if (state.stage === "material") {
+    state.material = getMaterial(value);
+
+    if (!state.material) {
+      state.material = "other";
+    }
+
+    continueConsultation();
+    return;
+  }
+
+  if (state.stage === "capacity") {
+    state.capacity = getCapacity(value);
+    state.stage = "capacity_done";
+    continueConsultation();
+    return;
+  }
+
+  if (state.stage === "readability") {
+    state.readability = getCapacity(value);
+
+    if (/мг/i.test(value) &&
+        state.readability !== null) {
+      state.readability /= 1000;
+    }
+
+    state.stage = "readability_done";
+    continueConsultation();
+    return;
+  }
+
+  if (state.stage === "purpose") {
+    state.purpose = getPurpose(value) || "unknown";
+    state.stage = "purpose_done";
+    continueConsultation();
+    return;
+  }
+
+  if (state.stage === "budget") {
+    const budget = getBudget(value);
+
+    if (budget === null) {
+      addMessage(
+        "Не вдалося визначити бюджет. Напишіть, наприклад, «до 15000 грн» або оберіть «Без обмежень»."
+      );
+
+      askBudget();
+      return;
+    }
+
+    state.budget = budget;
+    state.stage = "results";
+    showRecommendations();
+    return;
+  }
+
+  applyInitialQuery(value);
+}
+
+document.getElementById("form").addEventListener(
+  "submit",
+  event => {
+    event.preventDefault();
+
+    const text = input.value.trim();
+    input.value = "";
+
+    handle(text);
+  }
+);
+
+async function loadCatalog() {
   try {
-    send.disabled = true;
-
     const response = await fetch(
-      CATALOG_URL + '?t=' + Date.now(),
-      { cache: 'no-store' }
+      CATALOG_URL,
+      { cache: "no-cache" }
     );
 
     if (!response.ok) {
-      throw new Error('HTTP ' + response.status);
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
 
     if (!Array.isArray(data.products)) {
-      throw new Error('Неправильний формат каталогу');
+      throw new Error("Неправильний формат каталогу");
     }
 
-    products = data.products.filter(p =>
-      p &&
-      typeof p.name === 'string' &&
-      validUrl(p.url)
+    products = data.products.filter(
+      item => item &&
+        typeof item.name === "string" &&
+        safeUrl(item.url)
     );
 
     loaded = true;
 
-    say(
-      'Вітаємо у Лабзоні! ' +
-      'Допоможемо підібрати лабораторне обладнання. ' +
-      'Який прилад вам потрібен?'
+    addMessage(
+      "Вітаємо у Лабзоні! Допоможемо підібрати лабораторне обладнання. Який прилад вам потрібен?"
     );
 
-    buttons([
-      'Аналітичні ваги',
-      'pH-метр',
-      'Термометр',
-      'Гігрометр',
-      'Вологомір'
+    addChoices([
+      "Аналітичні ваги",
+      "pH-метр",
+      "Термометр",
+      "Гігрометр",
+      "Вологомір"
     ]);
 
   } catch (error) {
-    console.error('Catalog:', error);
+    console.error(error);
 
-    say(
-      'Зараз не вдалося завантажити каталог товарів. ' +
-      'Спробуйте оновити сторінку або зв’яжіться з менеджером: ' +
-      PHONE
+    addMessage(
+      "Не вдалося завантажити каталог. Спробуйте оновити сторінку пізніше."
     );
-  } finally {
-    send.disabled = false;
   }
 }
 
-init();
+loadCatalog();
 </script>
+
 </body>
 </html>
