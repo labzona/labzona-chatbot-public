@@ -19,6 +19,7 @@ body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color
 .actions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
 .choice{border:1px solid #c91d2c;border-radius:9px;background:#fff;color:#c91d2c;padding:9px 12px;cursor:pointer;font-size:13px;text-decoration:none}
 .choice:hover{background:#fff0f2}
+.choice:disabled{opacity:.4;cursor:not-allowed}
 .product{border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:12px}
 .product a{color:#c91d2c;font-size:15px;font-weight:bold;line-height:1.4}
 .price{margin-top:9px;font-weight:bold}
@@ -54,6 +55,7 @@ body{padding:0}
 
 const CATALOG_URL="./catalog.json";
 const PHONE="0505956447";
+const TELEGRAM="https://t.me/Uvarova_yulia";
 const messages=document.getElementById("messages");
 const input=document.getElementById("input");
 
@@ -76,11 +78,7 @@ const d=document.createElement("div");
 d.className="message "+role;
 d.textContent=text;
 messages.appendChild(d);
-scroll();
-}
-
-function scroll(){
-// Не прокручуємо чат автоматично під час показу результатів.
+return d;
 }
 
 function buttons(items){
@@ -100,7 +98,14 @@ box.appendChild(b);
 }
 
 messages.appendChild(box);
-scroll();
+return box;
+}
+
+function focusOn(element){
+if(!element)return;
+const outer=messages.getBoundingClientRect();
+const inner=element.getBoundingClientRect();
+messages.scrollTop+=inner.top-outer.top-10;
 }
 
 function validUrl(value){
@@ -644,7 +649,7 @@ return s.length>155
 :s;
 }
 
-function card(r){
+function createCard(r){
 const p=r.product;
 const d=document.createElement("div");
 d.className="product";
@@ -688,94 +693,114 @@ r.unknown.join(", ")+".";
 d.appendChild(el);
 }
 
-messages.appendChild(d);
-}
-
-function focusOn(element){
-  if(!element)return;
-  const outer=messages.getBoundingClientRect();
-  const inner=element.getBoundingClientRect();
-  messages.scrollTop+=inner.top-outer.top-10;
+return d;
 }
 
 function renderCurrentProduct(){
-  if(!resultsBox||!currentResults.length)return;
-  resultsBox.replaceChildren();
-  const result=currentResults[currentIndex];
-  const status=document.createElement("div");
-  status.className="detail";
-  status.style.marginBottom="10px";
-  status.textContent="Товар "+(currentIndex+1)+" із "+currentResults.length;
-  resultsBox.appendChild(status);
+if(!resultsBox||!currentResults.length)return;
 
-  // card() додає картку в messages; переміщуємо її до блоку результатів.
-  card(result);
-  resultsBox.appendChild(messages.lastElementChild);
+resultsBox.replaceChildren();
 
-  const controls=document.createElement("div");
-  controls.className="actions";
-  const previous=document.createElement("button");
-  previous.type="button";
-  previous.className="choice";
-  previous.textContent="← Попередній товар";
-  previous.disabled=currentIndex===0;
-  previous.onclick=()=>{
-    currentIndex--;
-    renderCurrentProduct();
-  };
-  controls.appendChild(previous);
+const status=document.createElement("div");
+status.className="detail";
+status.style.marginBottom="10px";
+status.textContent=
+"Товар "+(currentIndex+1)+" із "+currentResults.length;
+resultsBox.appendChild(status);
 
-  const next=document.createElement("button");
-  next.type="button";
-  next.className="choice";
-  next.textContent="Наступний товар →";
-  next.disabled=currentIndex===currentResults.length-1;
-  next.onclick=()=>{
-    currentIndex++;
-    renderCurrentProduct();
-  };
-  controls.appendChild(next);
-  resultsBox.appendChild(controls);
-  focusOn(resultsBox);
+resultsBox.appendChild(createCard(currentResults[currentIndex]));
+
+const controls=document.createElement("div");
+controls.className="actions";
+
+const previous=document.createElement("button");
+previous.type="button";
+previous.className="choice";
+previous.textContent="← Попередній товар";
+previous.disabled=currentIndex===0;
+previous.onclick=()=>{
+currentIndex--;
+renderCurrentProduct();
+};
+controls.appendChild(previous);
+
+const next=document.createElement("button");
+next.type="button";
+next.className="choice";
+next.textContent="Наступний товар →";
+next.disabled=currentIndex===currentResults.length-1;
+next.onclick=()=>{
+currentIndex++;
+renderCurrentProduct();
+};
+controls.appendChild(next);
+
+resultsBox.appendChild(controls);
+focusOn(resultsBox);
 }
 
 function recommend(){
-  const s=state;
-  const results=products
-    .map(p=>scoreProduct(p,s))
-    .filter(Boolean)
-    .sort((a,b)=>a.unknown.length-b.unknown.length||b.score-a.score);
+const s=state;
 
-  if(!results.length){
-    const anchor=document.createElement("div");
-    messages.appendChild(anchor);
-    addMessage("Не знайшла товарів із підтвердженою відповідністю запиту. Спробуйте змінити умови або уточніть підбір у менеджера.");
-    buttons(["Уточнити бюджет","Новий пошук","Зв'язатися з менеджером"]);
-    focusOn(anchor);
-    return;
-  }
+const results=products
+.map(p=>scoreProduct(p,s))
+.filter(Boolean)
+.sort((a,b)=>
+a.unknown.length-b.unknown.length||
+b.score-a.score
+);
 
-  const anchor=document.createElement("div");
-  messages.appendChild(anchor);
-  addMessage("Знайдено "+results.length+" потенційно відповідних товарів. Переглядайте їх по одному. Якщо характеристики не підтверджені каталогом, це буде зазначено в картці.");
-  currentResults=results;
-  currentIndex=0;
-  resultsBox=document.createElement("div");
-  messages.appendChild(resultsBox);
-  renderCurrentProduct();
-  buttons(["Уточнити бюджет","Новий пошук","Зв'язатися з менеджером"]);
-  focusOn(anchor);
+if(!results.length){
+const answer=addMessage(
+"Не знайшла товарів із підтвердженою відповідністю запиту. "+
+"Спробуйте змінити умови або уточніть підбір у менеджера."
+);
+
+buttons([
+"Уточнити бюджет",
+"Новий пошук",
+"Зв'язатися з менеджером"
+]);
+
+focusOn(answer);
+return;
+}
+
+const answer=addMessage(
+"Знайдено "+results.length+
+" потенційно відповідних товарів. "+
+"Переглядайте їх по одному. "+
+"Якщо характеристики не підтверджені каталогом, "+
+"це буде зазначено в картці."
+);
+
+currentResults=results;
+currentIndex=0;
+
+resultsBox=document.createElement("div");
+messages.appendChild(resultsBox);
+renderCurrentProduct();
+
+buttons([
+"Уточнити бюджет",
+"Новий пошук",
+"Зв'язатися з менеджером"
+]);
+
+focusOn(answer);
 }
 
 function manager(){
-addMessage("Менеджер Лабзони: 050 595 64 47.");
+const answer=addMessage(
+"Зв'яжіться з менеджеркою Лабзони:"
+);
 
 const box=document.createElement("div");
 box.className="actions";
 
 for(const [label,url] of [
-["Зателефонувати","tel:"+PHONE],
-["Сайт Лабзони","https://labzona.com.ua/"]
+["Зателефонувати","tel:+380505956447"],
+["Написати в Telegram",TELEGRAM]
 ]){
 const a=document.createElement("a");
 a.className="choice";
@@ -791,13 +816,13 @@ box.appendChild(a);
 }
 
 messages.appendChild(box);
-scroll();
+focusOn(answer);
 }
 
 function start(){
 state=null;
 
-addMessage(
+const answer=addMessage(
 "Яке обладнання або матеріали шукаєте?"
 );
 
@@ -810,16 +835,19 @@ buttons([
 "Сита лабораторні",
 "Ареометр"
 ]);
+
+focusOn(answer);
 }
 
 function handle(raw){
 const value=String(raw||"").trim();
 if(!value)return;
 
-addMessage(value,"user");
+const userMessage=addMessage(value,"user");
 
 if(!ready){
-addMessage("Каталог ще завантажується.");
+const answer=addMessage("Каталог ще завантажується.");
+focusOn(answer);
 return;
 }
 
@@ -835,15 +863,16 @@ return;
 
 if(/^уточнити бюджет$/i.test(value)){
 if(!state){
-addMessage(
+const answer=addMessage(
 "Спочатку напишіть, який товар шукаєте."
 );
+focusOn(answer);
 return;
 }
 
 state.waitBudget=true;
 
-addMessage("Який максимальний бюджет?");
+const answer=addMessage("Який максимальний бюджет?");
 
 buttons([
 "До 1000 грн",
@@ -852,6 +881,8 @@ buttons([
 "До 15000 грн",
 "Без обмежень"
 ]);
+
+focusOn(answer);
 return;
 }
 
@@ -859,9 +890,10 @@ if(state?.waitBudget){
 const b=budgetOf(value);
 
 if(b===null){
-addMessage(
+const answer=addMessage(
 "Напишіть, наприклад, «до 15000 грн»."
 );
+focusOn(answer);
 return;
 }
 
@@ -874,9 +906,10 @@ return;
 state=newState(value);
 
 if(!state.category&&tokens(value).length===0){
-addMessage(
+const answer=addMessage(
 "Уточніть назву або призначення товару."
 );
+focusOn(answer);
 return;
 }
 
