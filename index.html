@@ -3,106 +3,27 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Лабзона | Консультант</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  background:#f4f6f8;
-  font-family:Arial,sans-serif;
-  color:#222;
-}
-.chat{
-  max-width:480px;
-  height:min(650px,95dvh);
-  margin:20px auto;
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:14px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-.header{
-  background:#c8202e;
-  color:white;
-  padding:18px;
-  font-size:19px;
-  font-weight:bold;
-}
-.messages{
-  flex:1;
-  overflow-y:auto;
-  padding:16px;
-}
-.message{
-  padding:12px;
-  border-radius:11px;
-  margin-bottom:12px;
-  line-height:1.5;
-  overflow-wrap:anywhere;
-}
+body{margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#222}
+.chat{max-width:480px;height:min(650px,95dvh);margin:20px auto;background:white;border:1px solid #ddd;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.header{background:#c8202e;color:white;padding:18px;font-size:19px;font-weight:bold}
+.messages{flex:1;overflow-y:auto;padding:16px}
+.message{padding:12px;border-radius:11px;margin-bottom:12px;line-height:1.5;overflow-wrap:anywhere}
 .bot{background:#f0f0f0}
-.user{
-  background:#fce4e6;
-  margin-left:35px;
-}
-.product{
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:12px;
-  margin-bottom:10px;
-  background:#fff;
-}
-.product a{
-  color:#c8202e;
-  font-weight:bold;
-  line-height:1.4;
-}
-.details{
-  font-size:13px;
-  color:#555;
-  margin-top:7px;
-  line-height:1.45;
-}
-.actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-bottom:12px;
-}
-.choice{
-  background:#fff;
-  color:#c8202e;
-  border:1px solid #c8202e;
-  padding:9px 11px;
-  border-radius:8px;
-  cursor:pointer;
-}
+.user{background:#fce4e6;margin-left:35px}
+.product{border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
+.product a{color:#c8202e;font-weight:bold;line-height:1.4}
+.details{font-size:13px;color:#555;margin-top:7px;line-height:1.45}
+.actions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.choice{background:#fff;color:#c8202e;border:1px solid #c8202e;padding:9px 11px;border-radius:8px;cursor:pointer}
 .choice:hover{background:#fff1f2}
-.form{
-  display:flex;
-  gap:8px;
-  padding:12px;
-  border-top:1px solid #eee;
-}
-input{
-  flex:1;
-  min-width:0;
-  padding:11px;
-  border:1px solid #ccc;
-  border-radius:8px;
-  font-size:14px;
-}
-.send{
-  background:#c8202e;
-  color:#fff;
-  border:0;
-  border-radius:8px;
-  padding:11px;
-  cursor:pointer;
-}
+.form{display:flex;gap:8px;padding:12px;border-top:1px solid #eee}
+input{flex:1;min-width:0;padding:11px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+.send{background:#c8202e;color:#fff;border:0;border-radius:8px;padding:11px;cursor:pointer}
+.note{font-size:12px;color:#777;margin:8px 0}
 </style>
 </head>
 <body>
@@ -111,10 +32,7 @@ input{
   <div class="header">Лабзона | Консультант</div>
   <div class="messages" id="messages"></div>
   <form class="form" id="form">
-    <input id="input"
-      placeholder="Яке обладнання шукаєте?"
-      autocomplete="off"
-      required>
+    <input id="input" placeholder="Яке обладнання шукаєте?" autocomplete="off" required>
     <button class="send" type="submit">Надіслати</button>
   </form>
 </div>
@@ -122,21 +40,14 @@ input{
 <script>
 const messages=document.getElementById("messages");
 const input=document.getElementById("input");
-
 let products=[];
 let loaded=false;
-let state={
-  stage:null,
-  capacity:null,
-  precision:null
-};
+let state={category:null,step:0,answers:[],original:""};
 
 function norm(s){
-  return String(s||"")
-    .toLowerCase()
+  return String(s||"").toLowerCase()
     .replace(/,/g,".")
-    .replace(/\s+/g," ")
-    .trim();
+    .replace(/\s+/g," ").trim();
 }
 
 function scroll(){
@@ -154,31 +65,23 @@ function message(text,role="bot"){
 function choices(items){
   const box=document.createElement("div");
   box.className="actions";
-
   items.forEach(item=>{
     const btn=document.createElement("button");
     btn.type="button";
     btn.className="choice";
     btn.textContent=item;
-
     btn.onclick=()=>{
       box.remove();
       handle(item);
     };
-
     box.appendChild(btn);
   });
-
   messages.appendChild(box);
   scroll();
 }
 
 function reset(){
-  state={
-    stage:null,
-    capacity:null,
-    precision:null
-  };
+  state={category:null,step:0,answers:[],original:""};
 }
 
 function safeLink(url){
@@ -187,17 +90,14 @@ function safeLink(url){
     return u.protocol==="https:" &&
       u.hostname==="labzona.com.ua" &&
       u.pathname.startsWith("/shop/");
-  }catch{
-    return false;
-  }
+  }catch{return false;}
 }
 
 function priceText(p){
   const raw=String(p.price||"").trim();
-  const value=Number(raw);
-
-  return raw&&Number.isFinite(value)&&value>0
-    ?"Ціна: "+value.toLocaleString("uk-UA")+" грн"
+  const amount=Number(raw);
+  return raw&&Number.isFinite(amount)&&amount>0
+    ?"Ціна: "+amount.toLocaleString("uk-UA")+" грн"
     :"Ціна: уточніть у менеджера";
 }
 
@@ -205,29 +105,24 @@ function cleanDescription(p){
   let s=String(p.description||"");
 
   s=s.replace(
-    /(?:тел\.?|телефон|консультація)\s*[:.]?\s*\+?[\d\s()+-]{9,}/gi,
-    ""
+    /(?:тел\.?|телефон|дзвоніть|консультація)\s*[:.]?\s*\+?[\d\s()+-]{9,}/gi,""
   );
-
   s=s.replace(
-    /(?:в наявності|доставка по україні|працюємо 24\/7|безкоштовна консультація)[^.]*\.?/gi,
-    ""
+    /(?:\+?38[\s()-]*)?0\d{2}[\s()-]*\d{3}[\s()-]*\d{2}[\s()-]*\d{2}/g,""
   );
-
+  s=s.replace(
+    /(?:в наявності|доставка по україні|працюємо 24\/7|безкоштовна консультація)[^.]*\.?/gi,""
+  );
   s=s.replace(/\s+/g," ").trim();
 
-  return s.length>170
-    ?s.slice(0,170).trim()+"…"
-    :s;
+  return s.length>155?s.slice(0,155).trim()+"…":s;
 }
 
 function showProducts(items){
   const valid=items.filter(p=>safeLink(p.url));
 
   if(!valid.length){
-    message(
-      "Не знайшла відповідних товарів. Спробуйте уточнити назву, модель або характеристики."
-    );
+    message("Не знайшла підтверджених збігів у каталозі. Уточніть характеристики у менеджера Лабзони.");
     choices(["Новий пошук"]);
     return;
   }
@@ -259,77 +154,37 @@ function showProducts(items){
 }
 
 function productText(p){
-  return norm([
-    p.name||"",
-    p.description||"",
-    p.details||""
-  ].join(" "));
+  return norm([p.name,p.description,p.details].join(" "));
 }
 
 function toGrams(value,unit){
   const n=Number(String(value).replace(",","."));
   if(!Number.isFinite(n))return null;
-
-  const u=unit.toLowerCase();
-
-  if(u==="мг"||u==="mg")return n/1000;
-  if(u==="кг"||u==="kg")return n*1000;
+  if(unit==="мг"||unit==="mg")return n/1000;
+  if(unit==="кг"||unit==="kg")return n*1000;
   return n;
-}
-
-function closeEnough(a,b){
-  return Math.abs(a-b)<
-    Math.max(1e-8,Math.abs(b)*1e-6);
 }
 
 function extractValues(p,kind){
   const text=productText(p);
-
   const labels=kind==="capacity"
-    ?[
-      "нгз",
-      "нпв",
-      "max",
-      "мах",
-      "максимальне навантаження",
-      "максимальна маса зважування",
-      "найбільша межа зважування",
-      "найбільша границя зважування",
-      "максимальна межа зважування"
-    ]
-    :[
-      "дискретність",
-      "ціна поділки",
-      "ціна ділення",
-      "крок зважування",
-      "readability",
-      "resolution"
-    ];
+    ?["нгз","нпв","max","мах","максимальне навантаження",
+      "найбільша межа зважування","найбільша границя зважування",
+      "максимальна маса зважування"]
+    :["дискретність","ціна поділки","ціна ділення",
+      "крок зважування","readability","resolution"];
 
   const values=[];
-
   for(const label of labels){
-    const escaped=label.replace(
-      /[.*+?^${}()|[\]\\]/g,"\\$&"
-    );
-
+    const escaped=label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
     const re=new RegExp(
-      escaped+
-      "\\s*[:=—–-]?\\s*"+
-      "(\\d+(?:[.,]\\d+)?)"+
-      "\\s*(мг|кг|г|mg|kg|g)",
-      "gi"
+      escaped+"\\s*[:=—–-]?\\s*(\\d+(?:[.,]\\d+)?)\\s*(мг|кг|г|mg|kg|g)","gi"
     );
-
     for(const m of text.matchAll(re)){
-      const value=toGrams(m[1],m[2]);
-
-      if(value!==null&&value>0){
-        values.push(value);
-      }
+      const v=toGrams(m[1],m[2]);
+      if(v!==null&&v>0)values.push(v);
     }
   }
-
   return [...new Set(values)];
 }
 
@@ -338,115 +193,170 @@ function numberValue(s){
   return m?Number(m[0]):null;
 }
 
+function closeEnough(a,b){
+  return Math.abs(a-b)<Math.max(1e-8,b*1e-6);
+}
+
 function findScales(capacity,precision){
   return products.filter(p=>{
-    if(!/ваг|balance|scale/i.test(p.name||"")){
-      return false;
-    }
-
-    const capacities=extractValues(p,"capacity");
-    const precisions=extractValues(p,"precision");
-
-    if(capacity!==null &&
-       !capacities.some(v=>closeEnough(v,capacity))){
-      return false;
-    }
-
-    if(precision!==null &&
-       !precisions.some(v=>closeEnough(v,precision))){
-      return false;
-    }
-
+    if(!/ваг|balance|scale/i.test(p.name||""))return false;
+    const caps=extractValues(p,"capacity");
+    const precs=extractValues(p,"precision");
+    if(capacity!==null&&!caps.some(v=>closeEnough(v,capacity)))return false;
+    if(precision!==null&&!precs.some(v=>closeEnough(v,precision)))return false;
     return true;
   });
 }
 
-/* Визначення категорії та призначення */
+/* Категорії та діалоги */
 
-function detectIntent(query){
-  const q=norm(query);
-
-  if(/холодильник|холодильн|морозильн|холодов/.test(q)
-     && /термометр|температур/.test(q)){
-    return "fridge_thermometer";
+const flows={
+  scales:{
+    questions:[
+      {
+        text:"Яка максимальна маса зважування вам потрібна?",
+        options:["120 г","200 г","220 г","Інша / не знаю"]
+      },
+      {
+        text:"Яка дискретність (крок зважування) потрібна?",
+        options:["0,0001 г","0,001 г","0,01 г","Не знаю"]
+      }
+    ]
+  },
+  thermometer:{
+    questions:[
+      {
+        text:"Що саме потрібно вимірювати?",
+        options:["Повітря в холодильнику","Температуру продуктів","Рідини","Інше / не знаю"]
+      },
+      {
+        text:"Чи потрібна повірка або калібрування?",
+        options:["Потрібна повірка","Потрібне калібрування","Не потрібно","Не знаю"]
+      }
+    ]
+  },
+  hygrometer:{
+    questions:[
+      {
+        text:"Де плануєте контролювати вологість?",
+        options:["У приміщенні","На складі","У лабораторії","Інше / не знаю"]
+      },
+      {
+        text:"Чи потрібна повірка або калібрування?",
+        options:["Потрібна повірка","Потрібне калібрування","Не потрібно","Не знаю"]
+      }
+    ]
+  },
+  ph:{
+    questions:[
+      {
+        text:"Для яких зразків потрібен pH-метр?",
+        options:["Вода","Ґрунт","Харчові продукти","Інше / не знаю"]
+      },
+      {
+        text:"Який формат приладу зручніший?",
+        options:["Портативний","Настільний лабораторний","Не знаю"]
+      }
+    ]
   }
+};
 
-  if(/термометр|вимірювач температури/.test(q)){
-    return "thermometer";
-  }
-
-  if(/гігрометр|вологість повітря/.test(q)){
-    return "hygrometer";
-  }
-
-  if(/ph|рн-метр|кислотн/.test(q)){
-    return "ph_meter";
-  }
-
-  if(/сито|сита|просіюван/.test(q)){
-    return "sieve";
-  }
-
-  if(/ареометр|густин/.test(q)){
-    return "hydrometer";
-  }
-
-  return "general";
+function detectCategory(s){
+  const q=norm(s);
+  if(/ваг|зважуван/.test(q))return "scales";
+  if(/термометр|температур/.test(q))return "thermometer";
+  if(/гігрометр|вологість повітря/.test(q))return "hygrometer";
+  if(/ph|рн-метр|кислотномір/.test(q))return "ph";
+  return null;
 }
 
-function categoryMatches(p,intent){
-  const title=norm(p.name);
+function startFlow(category,original){
+  reset();
+  state.category=category;
+  state.original=original;
+  askQuestion();
+}
 
-  if(intent==="fridge_thermometer" ||
-     intent==="thermometer"){
-    return /термометр|термогігрометр|термограф/.test(title)
-      && !/ареометр|спалах|тигл|нафтопродукт/.test(title);
+function askQuestion(){
+  const flow=flows[state.category];
+  const q=flow.questions[state.step];
+  message(q.text);
+  choices(q.options);
+}
+
+/* Пошук із пріоритетом призначення */
+
+function isUnknown(s){
+  return /не знаю|інше|не потрібно/.test(norm(s));
+}
+
+function categoryMatches(p,category){
+  const name=norm(p.name);
+
+  if(category==="thermometer"){
+    return /термометр|термогігрометр|термограф/.test(name)
+      && !/ареометр|тигл|спалах|нафтопродукт/.test(name);
   }
-
-  if(intent==="hygrometer"){
-    return /гігрометр|термогігрометр|вологомір повітря/.test(title);
+  if(category==="hygrometer"){
+    return /гігрометр|термогігрометр|вологомір повітря/.test(name);
   }
-
-  if(intent==="ph_meter"){
-    return /ph|рн-метр|кислотномір/.test(title);
+  if(category==="ph"){
+    return /ph|рн-метр|кислотномір|лакуатвін/.test(name);
   }
-
-  if(intent==="sieve"){
-    return /сито|сита|набір сит/.test(title);
-  }
-
-  if(intent==="hydrometer"){
-    return /ареометр|денсиметр/.test(title);
-  }
-
   return true;
 }
 
-function purposeMatches(p,intent){
-  const title=norm(p.name);
-  const description=norm(p.description);
-  const details=norm(p.details);
+function purposeRule(category,answer){
+  const a=norm(answer);
 
-  if(intent==="fridge_thermometer"){
-    const purpose=/холодильник|холодильн|морозильн|холодов|холодильних камер/;
-
-    return purpose.test(title) ||
-      purpose.test(description) ||
-      purpose.test(details);
+  if(category==="thermometer"){
+    if(/холодильник/.test(a)){
+      return /холодильник|холодильн|морозильн|холодов/;
+    }
+    if(/продукт/.test(a)){
+      return /харчов|продукт|haccp|хассп|щупов/;
+    }
+    if(/рідини/.test(a)){
+      return /рідин|занур|щупов|води/;
+    }
   }
 
-  return true;
+  if(category==="hygrometer"){
+    if(/склад/.test(a))return /склад|приміщенн|повітря/;
+    if(/лаборатор/.test(a))return /лаборатор|приміщенн|повітря/;
+    if(/приміщенн/.test(a))return /приміщенн|повітря/;
+  }
+
+  if(category==="ph"){
+    if(/вода/.test(a))return /води|водн|water|акваріум/;
+    if(/ґрунт/.test(a))return /ґрунт|грунт|soil/;
+    if(/харчов/.test(a))return /харчов|продукт|food/;
+  }
+
+  return null;
+}
+
+function formRule(answer){
+  const a=norm(answer);
+  if(/портативн/.test(a))return /портатив|кишеньков|ручн|handheld/;
+  if(/настільн/.test(a))return /настільн|стаціонарн|лабораторн/;
+  return null;
+}
+
+function documentRule(answer){
+  const a=norm(answer);
+  if(/повірка/.test(a))return /повірк|повірен/;
+  if(/калібрування/.test(a))return /калібр|calibrat/;
+  return null;
 }
 
 const stop=new Set([
-  "мені","треба","потрібен","потрібна",
-  "потрібні","потрібно","хочу","купити",
-  "порадьте","знайти","підберіть","підкажіть",
-  "який","яка","які","для","мене","будь",
-  "ласка","прилад","обладнання","лабораторії",
-  "лабораторний","лабораторна","лабораторні",
-  "та","або","що","де","чи","на","по","від",
-  "із","з","в","у","і","є"
+  "мені","треба","потрібен","потрібна","потрібні",
+  "потрібно","хочу","купити","порадьте","знайти",
+  "підберіть","підкажіть","який","яка","які",
+  "для","мене","будь","ласка","прилад","обладнання",
+  "лабораторії","та","або","що","де","чи",
+  "на","по","від","із","з","в","у","і","є"
 ]);
 
 function tokenize(s){
@@ -454,106 +364,94 @@ function tokenize(s){
     .filter(w=>w.length>1&&!stop.has(w));
 }
 
-function genericSearch(query){
-  const intent=detectIntent(query);
+function searchGeneral(query,category=null,rule=null,form=null){
   const terms=[...new Set(tokenize(query))];
-
-  if(!terms.length)return [];
 
   return products
     .filter(p=>safeLink(p.url))
-    .filter(p=>categoryMatches(p,intent))
-    .filter(p=>purposeMatches(p,intent))
+    .filter(p=>!category||categoryMatches(p,category))
+    .filter(p=>!rule||rule.test(productText(p)))
+    .filter(p=>!form||form.test(productText(p)))
     .map(p=>{
-      const title=norm(p.name);
-      const description=norm(p.description);
+      const name=norm(p.name);
+      const desc=norm(p.description);
       const details=norm(p.details);
-
       let score=0;
 
-      terms.forEach(word=>{
-        if(title.includes(word))score+=10;
-        else if(description.includes(word))score+=3;
-        else if(details.includes(word))score+=1;
+      terms.forEach(t=>{
+        if(name.includes(t))score+=10;
+        else if(desc.includes(t))score+=3;
+        else if(details.includes(t))score+=1;
       });
 
-      if(intent==="fridge_thermometer"){
-        if(/холодильник|холодильн|морозильн/.test(title)){
-          score+=100;
-        }
-      }
+      if(rule&&rule.test(name))score+=100;
+      if(form&&form.test(name))score+=30;
 
       return {p,score};
     })
-    .filter(x=>x.score>0)
+    .filter(x=>x.score>0||rule!==null)
     .sort((a,b)=>b.score-a.score)
     .slice(0,5)
     .map(x=>x.p);
 }
 
-function startScales(){
-  reset();
-  state.stage="capacity";
+function completeFlow(){
+  const category=state.category;
+  const answers=[...state.answers];
 
-  message(
-    "Допоможу підібрати аналітичні ваги. Яка максимальна маса зважування вам потрібна?"
-  );
+  if(category==="scales"){
+    const capacity=numberValue(answers[0]);
+    const precision=numberValue(answers[1]);
 
-  choices(["120 г","200 г","220 г","Інша / не знаю"]);
-}
-
-function completeScales(){
-  const capacity=numberValue(state.capacity);
-  const precision=numberValue(state.precision);
-
-  if(capacity===null&&precision===null){
-    message("Ось аналітичні ваги з каталогу Лабзони:");
-    showProducts(genericSearch("аналітичні ваги"));
+    if(capacity===null&&precision===null){
+      message("Покажу аналітичні ваги для ознайомлення.");
+      showProducts(searchGeneral("аналітичні ваги"));
+    }else{
+      const found=findScales(capacity,precision);
+      message(
+        "Підбір ваг: навантаження — "+
+        (capacity===null?"не визначено":capacity+" г")+
+        ", дискретність — "+
+        (precision===null?"не визначено":String(precision).replace(".",",")+" г")+"."
+      );
+      if(found.length){
+        message("Знайдено "+found.length+" моделей із розпізнаними характеристиками.");
+        showProducts(found.slice(0,10));
+      }else{
+        message("Не знайшла підтверджених збігів. Можливо, характеристики в каталозі записані інакше.");
+        choices(["Новий пошук"]);
+      }
+    }
     reset();
     return;
   }
 
-  const found=findScales(capacity,precision);
+  const purpose=purposeRule(category,answers[0]);
+  const format=category==="ph"?formRule(answers[1]):null;
+  const document=category==="ph"?null:documentRule(answers[1]);
 
-  message(
-    "Шукаю ваги: навантаження — "+
-    (capacity===null?"не вказано":capacity+" г")+
-    ", дискретність — "+
-    (precision===null?"не вказано":
-      String(precision).replace(".",",")+" г")+"."
-  );
+  const query=state.original+" "+answers[0];
+  let found=searchGeneral(query,category,purpose,format);
+
+  if(document){
+    const confirmed=found.filter(p=>document.test(productText(p)));
+    if(confirmed.length){
+      found=confirmed;
+      message("У знайдених описах згадано потрібну метрологічну послугу або документ. Уточніть у менеджера, чи доступні вони саме для обраного приладу.");
+    }else{
+      message("Наявність повірки або калібрування для цих моделей у каталозі не підтверджена. Потрібно уточнити у менеджера.");
+    }
+  }
 
   if(found.length){
-    message(
-      "Знайдено "+found.length+
-      " моделей із розпізнаними параметрами. Перевірте технічні характеристики перед замовленням."
-    );
-    showProducts(found.slice(0,10));
+    message("Знайшла "+found.length+" товарів за уточненою потребою. Перевірте характеристики перед замовленням.");
+    showProducts(found);
   }else{
-    message(
-      "Не знайшла моделей із підтвердженими параметрами. Можливо, потрібна модель є в каталозі, але її характеристики записані в іншому форматі."
-    );
+    message("У каталозі не знайшла товарів із підтвердженим призначенням за вашими відповідями. Зверніться до менеджера для індивідуального підбору.");
     choices(["Новий пошук"]);
   }
 
   reset();
-}
-
-function recommend(query){
-  const found=genericSearch(query);
-
-  if(found.length){
-    message(
-      "Знайшла "+found.length+
-      " товарів за вашим запитом. Підбір виконано за призначенням і описом; перевірте технічні характеристики перед замовленням."
-    );
-    showProducts(found);
-  }else{
-    message(
-      "У каталозі не знайшла товарів із підтвердженим призначенням за цим запитом. Уточніть модель або зверніться до менеджера Лабзони."
-    );
-    choices(["Новий пошук"]);
-  }
 }
 
 function handle(text){
@@ -569,91 +467,63 @@ function handle(text){
 
   if(/^(новий пошук|спочатку|скинути)$/i.test(text)){
     reset();
-    message("Що шукаємо цього разу?");
-    choices([
-      "Аналітичні ваги",
-      "pH-метр",
-      "Термометр",
-      "Гігрометр"
-    ]);
+    message("Яке обладнання шукаєте?");
+    choices(["Аналітичні ваги","pH-метр","Термометр","Гігрометр"]);
     return;
   }
 
-  if(state.stage==="capacity"){
-    state.capacity=text;
-    state.stage="precision";
+  if(state.category){
+    state.answers.push(text);
+    state.step++;
 
-    message("Яка дискретність (крок зважування) потрібна?");
-    choices([
-      "0,0001 г",
-      "0,001 г",
-      "0,01 г",
-      "Не знаю"
-    ]);
+    if(state.step<flows[state.category].questions.length){
+      askQuestion();
+    }else{
+      completeFlow();
+    }
     return;
   }
 
-  if(state.stage==="precision"){
-    state.precision=text;
-    completeScales();
-    return;
-  }
+  const category=detectCategory(text);
 
-  if(/ваг|зважуван/i.test(text)){
-    startScales();
-    return;
+  if(category){
+    startFlow(category,text);
+  }else{
+    const found=searchGeneral(text);
+    if(found.length){
+      message("Знайшла товари за назвою та описом. Це попередній пошук, а не підтвердження технічної відповідності.");
+      showProducts(found);
+    }else{
+      message("За цим запитом нічого не знайдено. Спробуйте уточнити назву або модель.");
+      choices(["Новий пошук"]);
+    }
   }
-
-  recommend(text);
 }
 
-document.getElementById("form").addEventListener(
-  "submit",e=>{
-    e.preventDefault();
-    const text=input.value.trim();
-    input.value="";
-    handle(text);
-  }
-);
+document.getElementById("form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const text=input.value.trim();
+  input.value="";
+  handle(text);
+});
 
 async function load(){
   try{
-    const response=await fetch("./catalog.json",{
-      cache:"no-cache"
-    });
-
-    if(!response.ok){
-      throw new Error("HTTP "+response.status);
-    }
-
+    const response=await fetch("./catalog.json",{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
     const data=await response.json();
+    if(!Array.isArray(data.products))throw new Error("Invalid catalog");
 
-    if(!Array.isArray(data.products)){
-      throw new Error("Невірний формат каталогу");
-    }
-
-    products=data.products;
+    products=data.products.filter(p=>safeLink(p.url));
     loaded=true;
 
-    message(
-      "Вітаємо у Лабзоні! Допоможемо знайти лабораторне обладнання. Який прилад вам потрібен?"
-    );
-
-    choices([
-      "Аналітичні ваги",
-      "pH-метр",
-      "Термометр",
-      "Гігрометр"
-    ]);
-
+    message("Вітаємо у Лабзоні! Допоможемо підібрати лабораторне обладнання. Який прилад вам потрібен?");
+    choices(["Аналітичні ваги","pH-метр","Термометр","Гігрометр"]);
   }catch(error){
     console.error(error);
-    message(
-      "Каталог тимчасово недоступний. Спробуйте пізніше або зверніться до менеджера Лабзони."
-    );
+    message("Не вдалося завантажити каталог. Спробуйте пізніше.");
   }
 }
-
 load();
 </script>
 </body>
