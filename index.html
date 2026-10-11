@@ -19,7 +19,7 @@ body {
   max-width: 480px;
   height: min(650px, 95dvh);
   margin: 20px auto;
-  background: #fff;
+  background: white;
   border: 1px solid #ddd;
   border-radius: 14px;
   display: flex;
@@ -29,14 +29,16 @@ body {
 
 .header {
   background: #c8202e;
-  color: #fff;
+  color: white;
   padding: 18px;
   font-size: 19px;
   font-weight: bold;
+  flex-shrink: 0;
 }
 
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px;
 }
@@ -64,12 +66,14 @@ body {
 }
 
 .choice {
-  background: #fff;
+  background: white;
   color: #c8202e;
   border: 1px solid #c8202e;
   padding: 9px 11px;
   border-radius: 8px;
   cursor: pointer;
+  font: inherit;
+  text-decoration: none;
 }
 
 .choice:hover { background: #fff0f1; }
@@ -79,7 +83,7 @@ body {
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 10px;
-  background: #fff;
+  background: white;
 }
 
 .product a {
@@ -92,6 +96,7 @@ body {
   color: #555;
   margin-top: 7px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .form {
@@ -99,6 +104,7 @@ body {
   gap: 8px;
   padding: 12px;
   border-top: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 input {
@@ -112,7 +118,7 @@ input {
 
 .send {
   background: #c8202e;
-  color: #fff;
+  color: white;
   border: 0;
   border-radius: 8px;
   padding: 11px;
@@ -124,7 +130,6 @@ input {
 <body>
 <div class="chat">
   <div class="header">Лабзона | Консультант</div>
-
   <div class="messages" id="messages"></div>
 
   <form class="form" id="form">
@@ -153,7 +158,8 @@ let state = {
   category: null,
   material: null,
   usage: null,
-  budget: null
+  budget: null,
+  budgetAnswered: false
 };
 
 function norm(value) {
@@ -165,16 +171,16 @@ function norm(value) {
     .trim();
 }
 
+function scrollBottom() {
+  messages.scrollTop = messages.scrollHeight;
+}
+
 function message(text, role = "bot") {
   const div = document.createElement("div");
   div.className = "message " + role;
   div.textContent = text;
   messages.appendChild(div);
   scrollBottom();
-}
-
-function scrollBottom() {
-  messages.scrollTop = messages.scrollHeight;
 }
 
 function choices(items) {
@@ -200,13 +206,15 @@ function reset() {
     category: null,
     material: null,
     usage: null,
-    budget: null
+    budget: null,
+    budgetAnswered: false
   };
 }
 
 function safeLink(url) {
   try {
     const u = new URL(url);
+
     return u.protocol === "https:" &&
       u.hostname === "labzona.com.ua" &&
       u.pathname.startsWith("/shop/");
@@ -221,10 +229,14 @@ function numericPrice(product) {
     .replace(",", ".");
 
   const match = raw.match(/\d+(?:\.\d+)?/);
+
   if (!match) return null;
 
-  const amount = Number(match[0]);
-  return amount > 0 ? amount : null;
+  const value = Number(match[0]);
+
+  return Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }
 
 function priceText(product) {
@@ -240,23 +252,23 @@ function priceText(product) {
 function cleanDescription(product) {
   let text = String(product.description || "");
 
+  // Прибираємо номери телефонів.
   text = text.replace(
-    /(?:\+?38)?0\d{9}/g,
+    /(?:\+?38[\s()-]*)?0\d(?:[\s()-]*\d){8}/g,
     ""
   );
 
+  // Прибираємо рекламні речення.
   text = text.replace(
-    /(?:дзвоніть|телефонуйте|замовляйте|безкоштовна консультація|працюємо 24\/7)[^.!?\n]*/gi,
+    /[^.!?\n]*(?:дзвоніть|телефонуйте|замовляйте|безкоштовна консультація|працюємо 24\/7|у воєнний стан)[^.!?\n]*[.!?]?/gi,
     ""
   );
 
-  text = text.replace(
-    /\s+/g,
-    " "
-  ).trim();
+  text = text.replace(/\s+/g, " ").trim();
 
   if (text.length > 150) {
     text = text.slice(0, 150);
+
     const lastSpace = text.lastIndexOf(" ");
 
     if (lastSpace > 80) {
@@ -274,9 +286,14 @@ function showProducts(items) {
 
   if (!valid.length) {
     message(
-      "Не знайшла товарів, які відповідають запиту. Можемо уточнити параметри або звернутися до менеджера Лабзони."
+      "Не знайшла відповідних товарів. Можемо уточнити параметри або звернутися до менеджера."
     );
-    choices(["Новий пошук", "Зв'язатися з менеджером"]);
+
+    choices([
+      "Новий пошук",
+      "Зв'язатися з менеджером"
+    ]);
+
     return;
   }
 
@@ -319,7 +336,11 @@ function showProducts(items) {
     messages.appendChild(card);
   });
 
-  choices(["Новий пошук", "Зв'язатися з менеджером"]);
+  choices([
+    "Новий пошук",
+    "Зв'язатися з менеджером"
+  ]);
+
   scrollBottom();
 }
 
@@ -333,9 +354,12 @@ function extractBudget(text) {
 
   for (const pattern of patterns) {
     const match = s.match(pattern);
+
     if (!match) continue;
 
-    let amount = Number(match[1].replace(/\s/g, ""));
+    let amount = Number(
+      match[1].replace(/\s/g, "")
+    );
 
     if (/тис|тисяч/.test(match[2] || "")) {
       amount *= 1000;
@@ -356,7 +380,7 @@ function detectMaterial(text) {
     return "grain";
   }
 
-  if (/сін|солом|сіна/.test(s)) {
+  if (/сін|солом/.test(s)) {
     return "hay";
   }
 
@@ -382,13 +406,14 @@ function detectUsage(text) {
 }
 
 function isMoistureQuery(text) {
-  return /вологомір|вологомірів|вимір.*вологіст/.test(norm(text));
+  return /вологомір|вимір.*вологіст/.test(norm(text));
 }
 
+// Визначаємо тип вологоміра за назвою товару.
 function moistureType(product) {
   const name = norm(product.name);
 
-  if (!/вологомір|вологомір|вимірювач вологост/.test(name)) {
+  if (!/вологомір|вимірювач вологост/.test(name)) {
     return null;
   }
 
@@ -407,18 +432,24 @@ function moistureType(product) {
   return "unknown";
 }
 
+// ГОЛОВНЕ ВИПРАВЛЕННЯ:
+// Відкидаємо товари іншого призначення.
 function moistureCandidates() {
   return products.filter(p => {
     const type = moistureType(p);
 
-    if (!type) return false;
+    if (!type) {
+      return false;
+    }
 
+    // Не показуємо вологомір грунту для зерна.
     if (state.material && type !== state.material) {
       return false;
     }
 
     const price = numericPrice(p);
 
+    // Бюджет є суворим обмеженням.
     if (state.budget !== null) {
       if (price === null || price > state.budget) {
         return false;
@@ -426,6 +457,7 @@ function moistureCandidates() {
     }
 
     return safeLink(p.url);
+
   }).sort((a, b) => {
     const pa = numericPrice(a);
     const pb = numericPrice(b);
@@ -465,7 +497,11 @@ function completeMoisture() {
     message(
       "За заданими умовами не знайшла відповідних товарів із зазначеною ціною. Це не означає, що такого приладу немає в Лабзоні."
     );
-    choices(["Новий пошук", "Зв'язатися з менеджером"]);
+
+    choices([
+      "Новий пошук",
+      "Зв'язатися з менеджером"
+    ]);
   }
 
   reset();
@@ -520,7 +556,7 @@ function continueMoisture() {
     return;
   }
 
-  if (state.budget === null && state.stage !== "budgetDone") {
+  if (!state.budgetAnswered) {
     askBudget();
     return;
   }
@@ -535,16 +571,14 @@ function startMoisture(text) {
   state.material = detectMaterial(text);
   state.usage = detectUsage(text);
   state.budget = extractBudget(text);
-
-  if (state.budget !== null) {
-    state.stage = "budgetDone";
-  }
+  state.budgetAnswered = state.budget !== null;
 
   continueMoisture();
 }
 
 function genericSearch(query) {
-  const words = norm(query).match(/[a-zа-яіїє0-9]+/g) || [];
+  const words = norm(query)
+    .match(/[a-zа-яіїє0-9]+/g) || [];
 
   const stop = new Set([
     "мені", "треба", "потрібен",
@@ -601,6 +635,7 @@ function contactManager() {
 
 function handle(text) {
   text = String(text || "").trim();
+
   if (!text) return;
 
   message(text, "user");
@@ -612,7 +647,9 @@ function handle(text) {
 
   if (/^(новий пошук|спочатку|скинути)$/i.test(text)) {
     reset();
+
     message("Яке обладнання шукаєте?");
+
     choices([
       "Аналітичні ваги",
       "pH-метр",
@@ -620,6 +657,7 @@ function handle(text) {
       "Гігрометр",
       "Вологомір"
     ]);
+
     return;
   }
 
@@ -636,8 +674,14 @@ function handle(text) {
         message(
           "Для інших матеріалів потрібен окремий підбір. Уточніть назву матеріалу або зверніться до менеджера."
         );
+
         reset();
-        choices(["Новий пошук", "Зв'язатися з менеджером"]);
+
+        choices([
+          "Новий пошук",
+          "Зв'язатися з менеджером"
+        ]);
+
         return;
       }
 
@@ -665,13 +709,13 @@ function handle(text) {
         }
       }
 
-      state.stage = "budgetDone";
+      state.budgetAnswered = true;
       completeMoisture();
       return;
     }
   }
 
-  if (isMoistureQuery(text) || /^вологомір$/i.test(text)) {
+  if (isMoistureQuery(text)) {
     startMoisture(text);
     return;
   }
@@ -685,7 +729,11 @@ function handle(text) {
     message(
       "За цим запитом товарів не знайдено. Уточніть назву обладнання."
     );
-    choices(["Новий пошук", "Зв'язатися з менеджером"]);
+
+    choices([
+      "Новий пошук",
+      "Зв'язатися з менеджером"
+    ]);
   }
 }
 
