@@ -2,154 +2,197 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>Консультант Лабзона</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #222;
-    }
-
-    .chat {
-      max-width: 480px;
-      height: 600px;
-      margin: 30px auto;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 14px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .header {
-      background: #c8202e;
-      color: white;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .messages {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-    }
-
-    .message {
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    .bot {
-      background: #f1f1f1;
-    }
-
-    .user {
-      background: #fce5e7;
-      margin-left: 35px;
-    }
-
-    .input-area {
-      display: flex;
-      gap: 8px;
-      padding: 12px;
-      border-top: 1px solid #eee;
-    }
-
-    input {
-      flex: 1;
-      min-width: 0;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    button {
-      background: #c8202e;
-      color: white;
-      border: 0;
-      border-radius: 8px;
-      padding: 12px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Консультант Лабзона</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#222}
+.chat{max-width:480px;height:min(650px,95dvh);margin:20px auto;background:#fff;border:1px solid #ddd;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.header{background:#c8202e;color:#fff;padding:18px;font-size:18px;font-weight:bold}
+.messages{flex:1;padding:16px;overflow-y:auto}
+.message{padding:12px;border-radius:10px;margin-bottom:12px;line-height:1.5;overflow-wrap:anywhere}
+.bot{background:#f1f1f1}
+.user{background:#fce5e7;margin-left:35px}
+.product{border:1px solid #e5e5e5;padding:12px;border-radius:9px;margin:9px 0;background:white}
+.product a{color:#bd1e2d;font-weight:bold}
+.small{font-size:13px;color:#555;margin-top:6px}
+.input-area{display:flex;gap:8px;padding:12px;border-top:1px solid #eee}
+input{flex:1;min-width:0;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+button{background:#c8202e;color:#fff;border:0;border-radius:8px;padding:12px;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+</style>
 </head>
-
 <body>
-  <div class="chat">
-    <div class="header">
-      Лабзона | Консультант
+<div class="chat">
+  <div class="header">Лабзона | Консультант</div>
+  <div class="messages" id="messages">
+    <div class="message bot">
+      Вітаємо у Лабзоні! Допоможемо знайти лабораторне обладнання.
+      Напишіть, який прилад вам потрібен.
     </div>
-
-    <div class="messages" id="messages">
-      <div class="message bot">
-        Вітаємо у Лабзоні!
-        Допоможемо підібрати лабораторне
-        обладнання. Що ви шукаєте?
-      </div>
-    </div>
-
-    <form class="input-area" id="chatForm">
-      <input
-        id="question"
-        placeholder="Наприклад: аналітичні ваги"
-        autocomplete="off"
-        required
-      >
-      <button type="submit">
-        Надіслати
-      </button>
-    </form>
   </div>
+  <form class="input-area" id="chatForm">
+    <input id="question" placeholder="Наприклад: pH метр" required autocomplete="off">
+    <button id="send" type="submit">Надіслати</button>
+  </form>
+</div>
+<script>
+const CATALOG_URL="./catalog.json";
+const messages=document.getElementById("messages");
+const question=document.getElementById("question");
+const form=document.getElementById("chatForm");
+const send=document.getElementById("send");
+let products=[];
+let loaded=false;
 
-  <script>
-    const messages =
-      document.getElementById("messages");
+const stop=new Set([
+  "мені","треба","потрібно","потрібен","потрібна",
+  "потрібні","хочу","купити","знайти","порадьте",
+  "для","лабораторії","лабораторний","лабораторні",
+  "прилад","обладнання","який","яка","які",
+  "будь","ласка","що","є","на","до","від",
+  "та","і","в","у","з","із","по"
+]);
 
-    const question =
-      document.getElementById("question");
+function normalize(s){
+  return String(s||"").toLowerCase()
+    .replace(/рн/g,"ph")
+    .replace(/ё/g,"е")
+    .replace(/,/g,".");
+}
 
-    const form =
-      document.getElementById("chatForm");
+function words(s){
+  return (normalize(s).match(/[a-zа-яіїєґ0-9]+(?:[.-][a-zа-яіїєґ0-9]+)*/g)||[])
+    .filter(w=>w.length>1&&!stop.has(w));
+}
 
-    function addMessage(text, type) {
-      const div = document.createElement("div");
-      div.className = "message " + type;
-      div.textContent = text;
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
+function addMessage(text,type){
+  const div=document.createElement("div");
+  div.className="message "+type;
+  div.textContent=text;
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+  return div;
+}
+
+function searchProducts(query){
+  const queryWords=[...new Set(words(query))];
+  if(!queryWords.length)return [];
+
+  const results=products.map(p=>{
+    const title=normalize(p.name);
+    const body=normalize(
+      (p.description||"")+" "+(p.details||"").slice(0,5000)
+    );
+    let score=0;
+    let matches=0;
+
+    for(const word of queryWords){
+      if(title.includes(word)){
+        score+=6;
+        matches++;
+      }else if(body.includes(word)){
+        score+=1;
+        matches++;
+      }
     }
 
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
+    if(matches===0)return {p,score:0};
+    score*=0.5+matches/queryWords.length;
+    return {p,score};
+  });
 
-      const text = question.value.trim();
-      if (!text) return;
+  return results.filter(x=>x.score>0)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,5)
+    .map(x=>x.p);
+}
 
-      addMessage(text, "user");
-      question.value = "";
+function showProduct(p){
+  const card=document.createElement("div");
+  card.className="product";
 
-      addMessage(
-        "Дякуємо! Наступним кроком " +
-        "ми підключимо каталог Лабзони, " +
-        "щоб я міг рекомендувати товари.",
-        "bot"
-      );
-    });
-  </script>
+  const link=document.createElement("a");
+  link.textContent=p.name;
+  link.href=p.url;
+  link.target="_blank";
+  link.rel="noopener noreferrer";
+
+  // Only allow links to Labzona product pages.
+  try{
+    const u=new URL(p.url);
+    if(u.protocol!=="https:"||
+       u.hostname!=="labzona.com.ua"||
+       !u.pathname.startsWith("/shop/"))return;
+  }catch{return;}
+
+  const price=document.createElement("div");
+  price.className="small";
+  const raw=String(p.price||"").trim();
+  const amount=Number(raw);
+  price.textContent=raw&&Number.isFinite(amount)&&amount>0
+    ?"Ціна: "+amount.toLocaleString("uk-UA")+" грн"
+    :"Ціна: уточніть у менеджера";
+
+  const info=document.createElement("div");
+  info.className="small";
+  info.textContent=(p.description||"").slice(0,190);
+
+  card.append(link,price,info);
+  messages.appendChild(card);
+}
+
+async function loadCatalog(){
+  try{
+    const response=await fetch(CATALOG_URL,{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const data=await response.json();
+    if(!Array.isArray(data.products))throw new Error("Invalid catalog");
+    products=data.products;
+    loaded=true;
+    console.log("Завантажено товарів:",products.length);
+  }catch(error){
+    console.error("Помилка каталогу:",error);
+    addMessage(
+      "Зараз каталог тимчасово недоступний. Спробуйте пізніше або зверніться до менеджера Лабзони.",
+      "bot"
+    );
+  }
+}
+
+form.addEventListener("submit",event=>{
+  event.preventDefault();
+  const text=question.value.trim();
+  if(!text)return;
+
+  addMessage(text,"user");
+  question.value="";
+
+  if(!loaded){
+    addMessage("Каталог ще завантажується або недоступний. Спробуйте трохи пізніше.","bot");
+    return;
+  }
+
+  const results=searchProducts(text);
+  if(!results.length){
+    addMessage(
+      "Не знайшла відповідного товару за цим запитом. Уточніть назву або характеристики приладу. Також можна звернутися до менеджера Лабзони.",
+      "bot"
+    );
+    return;
+  }
+
+  addMessage(
+    "Знайшла товари в каталозі Лабзони. Перевірте характеристики за посиланнями. Якщо потрібна конкретна точність, діапазон вимірювання або метрологічні документи, уточніть їх у менеджера.",
+    "bot"
+  );
+
+  results.forEach(showProduct);
+  messages.scrollTop=messages.scrollHeight;
+});
+
+loadCatalog();
+</script>
 </body>
 </html>
