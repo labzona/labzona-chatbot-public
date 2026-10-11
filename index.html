@@ -8,13 +8,13 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#222}
-.chat{max-width:480px;height:min(650px,95dvh);margin:20px auto;background:white;border:1px solid #ddd;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-.header{background:#c8202e;color:#fff;padding:18px;font-size:19px;font-weight:bold}
+.chat{max-width:480px;height:min(650px,95dvh);margin:20px auto;background:#fff;border:1px solid #ddd;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.header{background:#c8202e;color:white;padding:18px;font-size:19px;font-weight:bold}
 .messages{flex:1;overflow-y:auto;padding:16px}
 .message{padding:12px;border-radius:11px;margin-bottom:12px;line-height:1.5;overflow-wrap:anywhere}
 .bot{background:#f0f0f0}
 .user{background:#fce4e6;margin-left:35px}
-.product{border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:10px;background:white}
+.product{border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
 .product a{color:#c8202e;font-weight:bold}
 .details{font-size:13px;color:#555;margin-top:7px;line-height:1.4}
 .actions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
@@ -35,10 +35,8 @@ input{flex:1;min-width:0;padding:11px;border:1px solid #ccc;border-radius:8px;fo
 </div>
 
 <script>
-const CATALOG_URL="./catalog.json";
 const messages=document.getElementById("messages");
 const input=document.getElementById("input");
-
 let products=[];
 let loaded=false;
 let state={stage:null,capacity:null,precision:null};
@@ -54,6 +52,10 @@ function message(text,role="bot"){
   div.className="message "+role;
   div.textContent=text;
   messages.appendChild(div);
+  scroll();
+}
+
+function scroll(){
   messages.scrollTop=messages.scrollHeight;
 }
 
@@ -61,15 +63,15 @@ function choices(items){
   const box=document.createElement("div");
   box.className="actions";
   items.forEach(item=>{
-    const button=document.createElement("button");
-    button.type="button";
-    button.className="choice";
-    button.textContent=item;
-    button.onclick=()=>handle(item);
-    box.appendChild(button);
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="choice";
+    btn.textContent=item;
+    btn.onclick=()=>handle(item);
+    box.appendChild(btn);
   });
   messages.appendChild(box);
-  messages.scrollTop=messages.scrollHeight;
+  scroll();
 }
 
 function reset(){
@@ -87,22 +89,21 @@ function safeLink(url){
 
 function priceText(p){
   const raw=String(p.price||"").trim();
-  const amount=Number(raw);
-  return raw&&Number.isFinite(amount)&&amount>0
-    ?"Ціна: "+amount.toLocaleString("uk-UA")+" грн"
+  const value=Number(raw);
+  return raw&&Number.isFinite(value)&&value>0
+    ?"Ціна: "+value.toLocaleString("uk-UA")+" грн"
     :"Ціна: уточніть у менеджера";
 }
 
 function showProducts(items){
   if(!items.length){
-    message("Товарів із підтвердженими характеристиками не знайдено. Можливо, параметри не вказані в каталозі. Зверніться до менеджера Лабзони для уточнення.");
+    message("Не знайшла підтверджених збігів. Уточніть характеристики у менеджера Лабзони.");
     choices(["Новий пошук"]);
     return;
   }
 
   items.forEach(p=>{
     if(!safeLink(p.url))return;
-
     const card=document.createElement("div");
     card.className="product";
 
@@ -116,16 +117,16 @@ function showProducts(items){
     price.className="details";
     price.textContent=priceText(p);
 
-    const desc=document.createElement("div");
-    desc.className="details";
-    desc.textContent=String(p.description||"").slice(0,180);
+    const description=document.createElement("div");
+    description.className="details";
+    description.textContent=String(p.description||"").slice(0,180);
 
-    card.append(link,price,desc);
+    card.append(link,price,description);
     messages.appendChild(card);
   });
 
   choices(["Новий пошук"]);
-  messages.scrollTop=messages.scrollHeight;
+  scroll();
 }
 
 function productText(p){
@@ -136,87 +137,105 @@ function productText(p){
   ].join(" "));
 }
 
-function numberValue(s){
-  const match=norm(s).match(/\d+(?:\.\d+)?/);
-  return match?Number(match[0]):null;
+function toGrams(number,unit){
+  const value=Number(String(number).replace(",","."));
+  if(!Number.isFinite(value))return null;
+  const u=unit.toLowerCase();
+  if(u==="мг"||u==="mg")return value/1000;
+  if(u==="кг"||u==="kg")return value*1000;
+  return value;
+}
+
+function closeEnough(a,b){
+  return Math.abs(a-b)<Math.max(1e-8,Math.abs(b)*1e-6);
 }
 
 /*
-  Extract technical specifications only when they appear
-  beside a recognizable specification label.
-  This avoids treating unrelated numbers as specifications.
+  Зчитуємо лише числа після назв характеристик.
+  Не використовуємо випадкові числа з опису.
 */
-function extractCapacity(p){
+function extractValues(p,kind){
   const text=productText(p);
 
-  const patterns=[
-    /(?:максимальн\w*\s+(?:навантаженн\w*|мас\w*|зважуванн\w*)|найбільш\w*\s+границ\w*\s+зважуванн\w*|max\b|мах\b|нмз\b|границ\w*\s+зважуванн\w*)\s*[:=\-–]?\s*(\d+(?:\.\d+)?)\s*(кг|г|kg|g)\b/gi,
-    /(?:\bmax\b|\bмах\b)\s*[:=\-–]?\s*(\d+(?:\.\d+)?)\s*(кг|г|kg|g)\b/gi
-  ];
+  const labels=kind==="capacity"
+    ?[
+      "нгз",
+      "нпв",
+      "max",
+      "мах",
+      "максимальне навантаження",
+      "максимальна маса зважування",
+      "найбільша межа зважування",
+      "найбільша границя зважування",
+      "максимальна границя зважування",
+      "максимальна межа зважування"
+    ]
+    :[
+      "дискретність",
+      "ціна поділки",
+      "ціна ділення",
+      "крок зважування",
+      "readability",
+      "resolution"
+    ];
 
   const values=[];
-  patterns.forEach(re=>{
-    for(const m of text.matchAll(re)){
-      const value=Number(m[1])*
-        (m[2]==="кг"||m[2]==="kg"?1000:1);
-      if(value>0)values.push(value);
+  const num="(\\d+(?:[.,]\\d+)?)";
+  const unit="(мг|кг|г|mg|kg|g)";
+
+  for(const label of labels){
+    const escaped=label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    const re=new RegExp(
+      escaped+"\\s*[:=—–-]?\\s*"+num+"\\s*"+unit,
+      "gi"
+    );
+
+    for(const match of text.matchAll(re)){
+      const value=toGrams(match[1],match[2]);
+      if(value!==null&&value>0)values.push(value);
     }
-  });
+  }
 
   return [...new Set(values)];
-}
-
-function extractPrecision(p){
-  const text=productText(p);
-
-  const patterns=[
-    /(?:дискретніст\w*|ціна\s+поділк\w*|ціна\s+дискр\w*|читабельніст\w*|readability|resolution)\s*[:=\-–]?\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)\b/gi,
-    /(?:\bd\b)\s*[:=]\s*(\d+(?:\.\d+)?)\s*(мг|г|mg|g)\b/gi
-  ];
-
-  const values=[];
-  patterns.forEach(re=>{
-    for(const m of text.matchAll(re)){
-      const value=Number(m[1])*
-        (m[2]==="мг"||m[2]==="mg"?0.001:1);
-      if(value>0)values.push(value);
-    }
-  });
-
-  return [...new Set(values)];
-}
-
-function numericMatch(values,target){
-  return values.some(value=>
-    Math.abs(value-target)<Math.max(1e-8,target*1e-6)
-  );
 }
 
 function findScales(capacity,precision){
   return products.filter(p=>{
     if(!/ваг|balance|scale/i.test(p.name||""))return false;
 
-    const capacities=extractCapacity(p);
-    const precisions=extractPrecision(p);
+    const capacities=extractValues(p,"capacity");
+    const precisions=extractValues(p,"precision");
 
-    if(capacity!==null&&!numericMatch(capacities,capacity)){
+    if(capacity!==null &&
+       !capacities.some(v=>closeEnough(v,capacity))){
       return false;
     }
-    if(precision!==null&&!numericMatch(precisions,precision)){
+
+    if(precision!==null &&
+       !precisions.some(v=>closeEnough(v,precision))){
       return false;
     }
+
     return true;
   });
 }
 
+function numberValue(s){
+  const m=norm(s).match(/\d+(?:\.\d+)?/);
+  return m?Number(m[0]):null;
+}
+
 function genericSearch(query){
-  const words=norm(query).match(/[a-zа-яіїєґ0-9]+/g)||[];
   const stop=new Set([
-    "мені","треба","потрібен","потрібні",
-    "купити","хочу","для","лабораторії",
-    "порадьте","знайти","прилад","обладнання"
+    "мені","треба","потрібен","потрібні","потрібна",
+    "купити","хочу","для","лабораторії","порадьте",
+    "знайти","прилад","обладнання","який","яка"
   ]);
-  const terms=words.filter(w=>w.length>1&&!stop.has(w));
+
+  const terms=(norm(query).match(/[a-zа-яіїєґ0-9]+/g)||[])
+    .filter(w=>w.length>1&&!stop.has(w));
+
+  if(!terms.length)return [];
 
   return products.map(p=>{
     const title=norm(p.name);
@@ -243,6 +262,13 @@ function completeScales(){
   const capacity=numberValue(state.capacity);
   const precision=numberValue(state.precision);
 
+  message(
+    "Шукаю ваги з параметрами: навантаження — "+
+    (capacity===null?"не вказано":capacity+" г")+
+    ", дискретність — "+
+    (precision===null?"не вказано":precision+" г")+"."
+  );
+
   if(capacity===null&&precision===null){
     message("Покажу аналітичні ваги для ознайомлення.");
     showProducts(genericSearch("аналітичні ваги"));
@@ -252,33 +278,25 @@ function completeScales(){
 
   const found=findScales(capacity,precision);
 
-  message(
-    "Перевірила каталог за параметрами: "+
-    "максимальне навантаження — "+
-    (capacity===null?"не вказано":capacity+" г")+
-    "; дискретність — "+
-    (precision===null?"не вказано":precision+" г")+"."
-  );
-
   if(found.length){
     message(
       "Знайдено "+found.length+
-      " моделей, для яких у каталозі розпізнані потрібні характеристики. Перед замовленням перевірте специфікацію товару."
+      " моделей із відповідними розпізнаними параметрами. Перевірте повні технічні характеристики перед замовленням."
     );
     showProducts(found.slice(0,10));
   }else{
     message(
-      "Не знайшла моделей, у яких вдалося підтвердити обидва параметри. Це не означає, що таких ваг немає в Лабзоні: можливо, характеристики записані в іншому форматі."
+      "Не знайшла моделей, для яких вдалося підтвердити ці параметри в каталозі. Це не означає, що товару немає. Зверніться до менеджера Лабзони."
     );
     choices(["Новий пошук"]);
   }
+
   reset();
 }
 
 function handle(text){
   text=String(text||"").trim();
   if(!text)return;
-
   message(text,"user");
 
   if(!loaded){
@@ -331,7 +349,7 @@ document.getElementById("form").addEventListener("submit",e=>{
 
 async function load(){
   try{
-    const response=await fetch(CATALOG_URL,{cache:"no-cache"});
+    const response=await fetch("./catalog.json",{cache:"no-cache"});
     if(!response.ok)throw new Error("HTTP "+response.status);
 
     const data=await response.json();
