@@ -60,6 +60,9 @@ const input=document.getElementById("input");
 let products=[];
 let ready=false;
 let state=null;
+let currentResults=[];
+let currentIndex=0;
+let resultsBox=null;
 
 const norm=v=>String(v??"")
 .toLowerCase()
@@ -77,7 +80,7 @@ scroll();
 }
 
 function scroll(){
-messages.scrollTop=messages.scrollHeight;
+// Не прокручуємо чат автоматично під час показу результатів.
 }
 
 function buttons(items){
@@ -688,65 +691,80 @@ d.appendChild(el);
 messages.appendChild(d);
 }
 
+function focusOn(element){
+  if(!element)return;
+  const outer=messages.getBoundingClientRect();
+  const inner=element.getBoundingClientRect();
+  messages.scrollTop+=inner.top-outer.top-10;
+}
+
+function renderCurrentProduct(){
+  if(!resultsBox||!currentResults.length)return;
+  resultsBox.replaceChildren();
+  const result=currentResults[currentIndex];
+  const status=document.createElement("div");
+  status.className="detail";
+  status.style.marginBottom="10px";
+  status.textContent="Товар "+(currentIndex+1)+" із "+currentResults.length;
+  resultsBox.appendChild(status);
+
+  // card() додає картку в messages; переміщуємо її до блоку результатів.
+  card(result);
+  resultsBox.appendChild(messages.lastElementChild);
+
+  const controls=document.createElement("div");
+  controls.className="actions";
+  const previous=document.createElement("button");
+  previous.type="button";
+  previous.className="choice";
+  previous.textContent="← Попередній товар";
+  previous.disabled=currentIndex===0;
+  previous.onclick=()=>{
+    currentIndex--;
+    renderCurrentProduct();
+  };
+  controls.appendChild(previous);
+
+  const next=document.createElement("button");
+  next.type="button";
+  next.className="choice";
+  next.textContent="Наступний товар →";
+  next.disabled=currentIndex===currentResults.length-1;
+  next.onclick=()=>{
+    currentIndex++;
+    renderCurrentProduct();
+  };
+  controls.appendChild(next);
+  resultsBox.appendChild(controls);
+  focusOn(resultsBox);
+}
+
 function recommend(){
-const s=state;
+  const s=state;
+  const results=products
+    .map(p=>scoreProduct(p,s))
+    .filter(Boolean)
+    .sort((a,b)=>a.unknown.length-b.unknown.length||b.score-a.score);
 
-const results=products
-.map(p=>scoreProduct(p,s))
-.filter(Boolean)
-.sort((a,b)=>
-a.unknown.length-b.unknown.length||
-b.score-a.score
-);
+  if(!results.length){
+    const anchor=document.createElement("div");
+    messages.appendChild(anchor);
+    addMessage("Не знайшла товарів із підтвердженою відповідністю запиту. Спробуйте змінити умови або уточніть підбір у менеджера.");
+    buttons(["Уточнити бюджет","Новий пошук","Зв'язатися з менеджером"]);
+    focusOn(anchor);
+    return;
+  }
 
-if(!results.length){
-addMessage(
-"Не знайшла товарів із підтвердженою відповідністю запиту. "+
-"Спробуйте змінити умови або уточніть підбір у менеджера."
-);
-
-buttons([
-"Уточнити бюджет",
-"Новий пошук",
-"Зв'язатися з менеджером"
-]);
-return;
-}
-
-const exact=results.filter(r=>!r.unknown.length);
-const uncertain=results.filter(r=>r.unknown.length);
-
-if(exact.length){
-addMessage(
-"Знайдено "+exact.length+
-" товарів за доступними даними каталогу."
-);
-exact.slice(0,5).forEach(card);
-}
-
-if(uncertain.length){
-addMessage(
-exact.length
-?"Також є моделі, характеристики яких потрібно уточнити:"
-:"Є потенційно відповідні товари, але деякі характеристики потрібно уточнити:"
-);
-uncertain.slice(0,3).forEach(card);
-}
-
-if(results.length>8){
-addMessage(
-"Показано найрелевантніші варіанти. "+
-"Уточніть запит для точнішого підбору."
-);
-}
-
-buttons([
-"Уточнити бюджет",
-"Новий пошук",
-"Зв'язатися з менеджером"
-]);
-
-scroll();
+  const anchor=document.createElement("div");
+  messages.appendChild(anchor);
+  addMessage("Знайдено "+results.length+" потенційно відповідних товарів. Переглядайте їх по одному. Якщо характеристики не підтверджені каталогом, це буде зазначено в картці.");
+  currentResults=results;
+  currentIndex=0;
+  resultsBox=document.createElement("div");
+  messages.appendChild(resultsBox);
+  renderCurrentProduct();
+  buttons(["Уточнити бюджет","Новий пошук","Зв'язатися з менеджером"]);
+  focusOn(anchor);
 }
 
 function manager(){
