@@ -54,7 +54,7 @@ body{padding:0}
 "use strict";
 
 const CATALOG_URL="./catalog.json";
-const PHONE="0505956447";
+const PHONE="050 595 64 47";
 const TELEGRAM="https://t.me/Uvarova_yulia";
 const messages=document.getElementById("messages");
 const input=document.getElementById("input");
@@ -792,29 +792,34 @@ focusOn(answer);
 
 function manager(){
 const answer=addMessage(
-"Зв'яжіться з менеджеркою Лабзони:"
+"Як вам зручніше зв'язатися з менеджеркою Лабзони?"
 );
 
 const box=document.createElement("div");
 box.className="actions";
 
-for(const [label,url] of [
-["Зателефонувати","tel:+380505956447"],
-["Написати в Telegram",TELEGRAM]
-]){
-const a=document.createElement("a");
-a.className="choice";
-a.href=url;
-a.textContent=label;
+const phoneButton=document.createElement("button");
+phoneButton.type="button";
+phoneButton.className="choice";
+phoneButton.textContent="Показати номер телефону";
 
-if(url.startsWith("https:")){
-a.target="_blank";
-a.rel="noopener noreferrer";
-}
+phoneButton.onclick=()=>{
+const number=addMessage(
+"Телефон менеджера Лабзони: "+PHONE
+);
+focusOn(number);
+};
 
-box.appendChild(a);
-}
+box.appendChild(phoneButton);
 
+const telegram=document.createElement("a");
+telegram.className="choice";
+telegram.href=TELEGRAM;
+telegram.target="_blank";
+telegram.rel="noopener noreferrer";
+telegram.textContent="Написати в Telegram";
+
+box.appendChild(telegram);
 messages.appendChild(box);
 focusOn(answer);
 }
@@ -843,7 +848,7 @@ function handle(raw){
 const value=String(raw||"").trim();
 if(!value)return;
 
-const userMessage=addMessage(value,"user");
+addMessage(value,"user");
 
 if(!ready){
 const answer=addMessage("Каталог ще завантажується.");
