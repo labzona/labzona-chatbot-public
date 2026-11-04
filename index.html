@@ -17,7 +17,7 @@ body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color
 .bot{background:#f0f0f0}
 .user{background:#fbe4e7;margin-left:auto}
 .actions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
-.choice{border:1px solid #c91d2c;border-radius:9px;background:white;color:#c91d2c;padding:9px 12px;cursor:pointer;font-size:13px;text-decoration:none}
+.choice{border:1px solid #c91d2c;border-radius:9px;background:#fff;color:#c91d2c;padding:9px 12px;cursor:pointer;font-size:13px;text-decoration:none}
 .choice:hover{background:#fff0f2}
 .choice:disabled{opacity:.45;cursor:not-allowed}
 .product{border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:12px}
@@ -40,22 +40,24 @@ body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color
 </head>
 <body>
 <div class="chat">
-  <div class="header">
-    <strong>Лабзона | Консультант</strong>
-    <small>Підбір лабораторного обладнання</small>
-  </div>
-  <div class="messages" id="messages" aria-live="polite"></div>
-  <form class="form" id="form">
-    <input id="input" placeholder="Що шукаєте?" maxlength="300" autocomplete="off" required>
-    <button class="send" type="submit">Надіслати</button>
-  </form>
+ <div class="header">
+  <strong>Лабзона | Консультант</strong>
+  <small>Підбір лабораторного обладнання</small>
+ </div>
+ <div class="messages" id="messages" aria-live="polite"></div>
+ <form class="form" id="form">
+  <input id="input" placeholder="Що шукаєте?" maxlength="300" autocomplete="off" required>
+  <button class="send" type="submit">Надіслати</button>
+ </form>
 </div>
+
 <script>
 "use strict";
 
 const CATALOG_URL="./catalog.json";
 const PHONE="050 595 64 47";
 const TELEGRAM="https://t.me/Uvarova_yulia";
+
 const AI={
  endpoint:"https://shiny-sun-bcfelabzona-ai-normalizer.labzona-ukraine.workers.dev/api/normalize",
  siteKey:"0x4AAAAAAFzMQ2thIpDS1v_-"
@@ -94,15 +96,21 @@ function message(text,role="bot"){
 function buttons(labels){
  const box=document.createElement("div");
  box.className="actions";
+
  for(const label of labels){
   const b=document.createElement("button");
   b.type="button";
   b.className="choice";
   b.textContent=label;
-  b.onclick=()=>{box.remove();handle(label)};
+  b.onclick=()=>{
+   box.remove();
+   handle(label);
+  };
   box.appendChild(b);
  }
+
  messages.appendChild(box);
+ messages.scrollTop=messages.scrollHeight;
  return box;
 }
 
@@ -112,14 +120,23 @@ function validUrl(value){
   return u.protocol==="https:" &&
    u.hostname==="labzona.com.ua" &&
    u.pathname.startsWith("/shop/");
- }catch{return false}
+ }catch{
+  return false;
+ }
 }
 
 function priceNumber(value){
- const n=Number(String(value??"")
-  .replace(/\s/g,"")
-  .replace(/грн|uah/gi,"")
-  .replace(",","."));
+ if(typeof value==="number"){
+  return Number.isFinite(value)&&value>0?value:null;
+ }
+
+ const n=Number(
+  String(value??"")
+   .replace(/\s/g,"")
+   .replace(/грн|uah/gi,"")
+   .replace(",",".")
+ );
+
  return Number.isFinite(n)&&n>0?n:null;
 }
 
@@ -130,27 +147,154 @@ function priceText(value){
   :n.toLocaleString("uk-UA")+" грн";
 }
 
+/*
+ Each category has:
+ q       - customer's wording
+ name    - actual product name
+ exclude - known incompatible product types
+*/
+
 const CATEGORIES=[
- {id:"conductivity",label:"Кондуктометри",q:/кондуктометр|електропровідн|электропровод|conductivity|tds[\s-]*метр|солемір/i,name:/кондуктометр|conductivity|tds[\s-]*метр|солемір/i,exclude:/електрод окрем|зонд окрем|калібрувальн.*розчин/i},
- {id:"ph",label:"pH-метри",q:/ph[\s-]*метр|рн[\s-]*метр|пш[\s-]*мет[еє]р|кислотност|кислотн|кисл[а-яіїєґ]*\s+вод/i,name:/ph[\s-]*метр|рн[\s-]*метр|кислотномір/i,exclude:/буфер|розчин|електрод|тест.смуж|реактив/i},
- {id:"scales",label:"Ваги",q:/ваг[иа]|ваги|вес[ыи]|зважуван|терез|balance|weighing scale/i,name:/ваг|вес|balance|scale/i,exclude:/гир[яі]|набір гир|чашк|кабел|блок живлення|аксесуар/i},
- {id:"hygrometer",label:"Гігрометри",q:/гігрометр|гигрометр|вит[\s-]*[12]|віт[\s-]*[12]/i,name:/гігрометр|гигрометр/i,exclude:/чохол|футляр|запчастин/i},
- {id:"moisture",label:"Вологоміри",q:/вологомір|влагомер|аналізатор вологості|вологість зерна|вологість деревини/i,name:/вологомір|влагомер|аналізатор вологості/i,exclude:/чашк|контейнер|запчастин/i},
- {id:"thermometer",label:"Термометри",q:/термометр|термощуп|термодатчик/i,name:/термометр|термощуп/i,exclude:/чохол|футляр|окремий зонд/i},
- {id:"sieve",label:"Лабораторні сита",q:/сит[оа]|сита|sieve|просіюван/i,name:/сит[оа]|сита|sieve/i,exclude:null},
- {id:"hydrometer",label:"Ареометри",q:/ареометр|денсиметр/i,name:/ареометр|денсиметр/i,exclude:null},
- {id:"glassware",label:"Лабораторний посуд",q:/колб[аиу]|пробірк|бюретк|піпетк|циліндр мірн|лабораторний посуд/i,name:/колб|пробірк|бюретк|піпетк|циліндр|стакан|склянк|посуд/i,exclude:null},
- {id:"weights",label:"Гирі",q:/гир[яі]|еталонн.*гир/i,name:/гир[яі]/i,exclude:null},
- {id:"microscope",label:"Мікроскопи",q:/мікроскоп|микроскоп/i,name:/мікроскоп|микроскоп/i,exclude:/адаптер|тримач/i},
- {id:"centrifuge",label:"Центрифуги",q:/центрифуг/i,name:/центрифуг/i,exclude:/пробірк|ротор окрем/i},
- {id:"distiller",label:"Дистилятори",q:/дистилятор|аквадистилятор|дистильован.*вод/i,name:/дистилятор/i,exclude:null},
- {id:"refractometer",label:"Рефрактометри",q:/рефрактометр/i,name:/рефрактометр/i,exclude:null},
- {id:"spectro",label:"Спектрофотометри",q:/спектрофотометр/i,name:/спектрофотометр/i,exclude:null},
- {id:"micrometer",label:"Мікрометри",q:/мікрометр/i,name:/мікрометр/i,exclude:null},
- {id:"caliper",label:"Штангенциркулі",q:/штангенциркул/i,name:/штангенциркул/i,exclude:null},
- {id:"falling-number",label:"Прилади числа падіння",q:/числ[ао] падін|числ[ао] паден|пчп/i,name:/числ[ао] падін|числ[ао] паден|пчп/i,exclude:null},
- {id:"anemometer",label:"Анемометри",q:/анемометр|швидкість повітря/i,name:/анемометр/i,exclude:null},
- {id:"viscometer",label:"Віскозиметри",q:/віскозиметр|вискозиметр|в'язкість рідини/i,name:/віскозиметр|вискозиметр/i,exclude:/пробірк|пчп|числ[ао] падін|числ[ао] паден|запчастин|комплектуюч|аксесуар|окремий ротор|калібрувальн.*рідина/i}
+ {
+  id:"conductivity",
+  label:"Кондуктометри",
+  q:/кондуктометр|електропровідн|электропровод|conductivity|tds[\s-]*метр|солемір/i,
+  name:/кондуктометр|conductivity|tds[\s-]*метр|солемір/i,
+  exclude:/електрод окрем|зонд окрем|калібрувальн.*розчин/i
+ },
+ {
+  id:"ph",
+  label:"pH-метри",
+  q:/ph[\s-]*метр|рн[\s-]*метр|пш[\s-]*мет[еє]р|кислотност|кислотн/i,
+  name:/ph[\s-]*метр|рн[\s-]*метр|кислотномір/i,
+  exclude:/буфер|розчин|електрод|тест.смуж|реактив/i
+ },
+ {
+  id:"scales",
+  label:"Ваги",
+  q:/ваг[иа]|ваги|вес[ыи]|зважуван|терез|balance|weighing scale/i,
+  name:/ваг|вес|balance|scale/i,
+  exclude:/гир[яі]|набір гир|чашк|кабел|блок живлення|аксесуар/i
+ },
+ {
+  id:"hygrometer",
+  label:"Гігрометри",
+  q:/гігрометр|гигрометр|вит[\s-]*[12]|віт[\s-]*[12]/i,
+  name:/гігрометр|гигрометр/i,
+  exclude:/чохол|футляр|запчастин/i
+ },
+ {
+  id:"moisture",
+  label:"Вологоміри",
+  q:/вологомір|влагомер|аналізатор вологості|вологість зерна|вологість деревини/i,
+  name:/вологомір|влагомер|аналізатор вологості/i,
+  exclude:/чашк|контейнер|запчастин/i
+ },
+ {
+  id:"thermometer",
+  label:"Термометри",
+  q:/термометр|термощуп|термодатчик/i,
+  name:/термометр|термощуп/i,
+  exclude:/чохол|футляр|окремий зонд/i
+ },
+ {
+  id:"sieve",
+  label:"Лабораторні сита",
+  q:/сит[оа]|сита|sieve|просіюван/i,
+  name:/сит[оа]|сита|sieve/i,
+  exclude:null
+ },
+ {
+  id:"hydrometer",
+  label:"Ареометри",
+  q:/ареометр|денсиметр/i,
+  name:/ареометр|денсиметр/i,
+  exclude:null
+ },
+ {
+  id:"glassware",
+  label:"Лабораторний посуд",
+  q:/колб[аиу]|пробірк|бюретк|піпетк|циліндр мірн|лабораторний посуд/i,
+  name:/колб|пробірк|бюретк|піпетк|циліндр|стакан|склянк|посуд/i,
+  exclude:null
+ },
+ {
+  id:"weights",
+  label:"Гирі",
+  q:/гир[яі]|еталонн.*гир/i,
+  name:/гир[яі]/i,
+  exclude:null
+ },
+ {
+  id:"microscope",
+  label:"Мікроскопи",
+  q:/мікроскоп|микроскоп/i,
+  name:/мікроскоп|микроскоп/i,
+  exclude:/адаптер|тримач/i
+ },
+ {
+  id:"centrifuge",
+  label:"Центрифуги",
+  q:/центрифуг/i,
+  name:/центрифуг/i,
+  exclude:/пробірк|ротор окрем/i
+ },
+ {
+  id:"distiller",
+  label:"Дистилятори",
+  q:/дистилятор|аквадистилятор|дистильован.*вод/i,
+  name:/дистилятор/i,
+  exclude:null
+ },
+ {
+  id:"refractometer",
+  label:"Рефрактометри",
+  q:/рефрактометр/i,
+  name:/рефрактометр/i,
+  exclude:null
+ },
+ {
+  id:"spectro",
+  label:"Спектрофотометри",
+  q:/спектрофотометр/i,
+  name:/спектрофотометр/i,
+  exclude:null
+ },
+ {
+  id:"micrometer",
+  label:"Мікрометри",
+  q:/мікрометр/i,
+  name:/мікрометр/i,
+  exclude:null
+ },
+ {
+  id:"caliper",
+  label:"Штангенциркулі",
+  q:/штангенциркул/i,
+  name:/штангенциркул/i,
+  exclude:null
+ },
+ {
+  id:"falling-number",
+  label:"Прилади числа падіння",
+  q:/числ[ао] падін|числ[ао] паден|пчп/i,
+  name:/числ[ао] падін|числ[ао] паден|пчп/i,
+  exclude:null
+ },
+ {
+  id:"anemometer",
+  label:"Анемометри",
+  q:/анемометр|швидкість повітря/i,
+  name:/анемометр/i,
+  exclude:null
+ },
+ {
+  id:"viscometer",
+  label:"Віскозиметри",
+  q:/віскозиметр|вискозиметр|в'язкост|в'язкіст|вязкост/i,
+  name:/віскозиметр|вискозиметр/i,
+  exclude:/пробірк|пчп|числ[ао] падін|числ[ао] паден|запчастин|комплектуюч|аксесуар|окремий ротор|бан[яі]|термостат/i
+ }
 ];
 
 const MATERIAL={
@@ -161,32 +305,140 @@ const MATERIAL={
 
 function categoryOf(query){
  const q=norm(query);
- if(/кислотн|кислотност|кисл[а-яіїєґ]*/.test(q) &&
-    /вод|рідин|розчин|раствор/.test(q)){
+
+ if(
+  /кислотн|кислотност/.test(q) &&
+  /вод|рідин|розчин|раствор/.test(q)
+ ){
   return CATEGORIES.find(c=>c.id==="ph");
  }
+
  return CATEGORIES.find(c=>c.q.test(q))||null;
 }
 
-function materialOf(q){
+function materialOf(query){
+ const q=norm(query);
  return Object.keys(MATERIAL)
-  .find(k=>MATERIAL[k].test(norm(q)))||null;
+  .find(k=>MATERIAL[k].test(q))||null;
 }
 
-function budgetOf(q){
- const s=norm(q);
- if(/без обмежень|будь.як.*цін/.test(s))return Infinity;
+/*
+ Read customer application.
+ Never infer confirmed technical compatibility
+ from the name of the category alone.
+*/
+function applicationOf(query){
+ const q=norm(query);
+
+ if(/фарб|лакофарб|лакокрас|емал|покритт|paint|coating/.test(q)){
+  return "paint";
+ }
+
+ if(/зерн|пшениц|кукурудз|ячмен|ріпак/.test(q)){
+  return "grain";
+ }
+
+ if(/холодильн|морозильн/.test(q)){
+  return "cold";
+ }
+
+ if(/вод|рідин|розчин/.test(q)){
+  return "liquid";
+ }
+
+ return null;
+}
+
+/*
+ Main instrument vs accessory/support equipment.
+ Specific category rules are safer than broad
+ bans on product names.
+*/
+function productKind(product,category){
+ const name=norm(product.name);
+
+ if(category?.id==="viscometer"){
+  if(/пробірк|пчп|запчастин|ротор окрем/.test(name))
+   return "accessory";
+
+  if(/бан[яі]|термостат|водян.*бан/.test(name))
+   return "support";
+
+  if(/віскозиметр|вискозиметр/.test(name))
+   return "instrument";
+ }
+
+ if(category?.id==="ph" ||
+    category?.id==="conductivity"){
+  if(/електрод|буфер|калібрувальн.*розчин|датчик окрем/.test(name))
+   return "accessory";
+ }
+
+ if(category?.id==="scales"){
+  if(/гир[яі]|чашк|блок живлення|адаптер|кабел/.test(name))
+   return "accessory";
+ }
+
+ if(category?.id==="moisture"){
+  if(/чашк|контейнер|запчастин/.test(name))
+   return "accessory";
+ }
+
+ return "instrument";
+}
+
+function applicationEvidence(product,category,application){
+ const name=norm(product.name);
+ const body=norm([product.description,product.details].join(" "));
+ const text=name+" "+body;
+
+ if(!application)return "not_requested";
+
+ if(category.id==="viscometer"&&application==="paint"){
+  if(/лакофарб|лакокрас|фарб|емал|paint|coating/.test(text)){
+   return "confirmed";
+  }
+  return "unconfirmed";
+ }
+
+ if(category.id==="moisture"&&application==="grain"){
+  return /зерн|насін|пшениц|кукурудз|ячмен|ріпак/.test(text)
+   ?"confirmed":"unconfirmed";
+ }
+
+ if(category.id==="thermometer"&&application==="cold"){
+  return /холодильн|морозильн/.test(text)
+   ?"confirmed":"unconfirmed";
+ }
+
+ return "not_requested";
+}
+
+function budgetOf(query){
+ const s=norm(query);
+
+ if(/без обмежень|будь.як.*цін/.test(s)){
+  return Infinity;
+ }
+
  const m=s.match(
   /(?:до|бюджет|не дорожче|не більше|максимум|ціна)\s*[:-]?\s*(\d[\d\s.]*)\s*(тис|тисяч|к|грн)?/
  );
+
  if(!m)return null;
+
  let n=Number(m[1].replace(/\s/g,""));
- if(/^(тис|к)/.test(m[2]||""))n*=1000;
- return n>0?n:null;
+
+ if(/^(тис|к)/.test(m[2]||"")){
+  n*=1000;
+ }
+
+ return Number.isFinite(n)&&n>0?n:null;
 }
 
 function toGrams(number,unit){
  const n=Number(String(number).replace(",","."));
+
  if(!Number.isFinite(n)||n<=0)return null;
  if(/^(кг|kg)$/i.test(unit))return n*1000;
  if(/^(мг|mg)$/i.test(unit))return n/1000;
@@ -219,6 +471,7 @@ function queryScaleSpecs(query){
  if(cap)capacity=toGrams(cap[1],cap[2]);
 
  const pair=s.match(PAIR_PATTERN);
+
  if(pair){
   capacity=toGrams(pair[1],pair[2]);
   readability=toGrams(pair[3],pair[4]);
@@ -229,17 +482,20 @@ function queryScaleSpecs(query){
    /(\d+(?:\.\d+)?)\s*(кг|kg|г|g)(?=\s|$|[.,;/])/gi
   )];
 
-  const capMatch=matches.find(m=>{
+  const found=matches.find(m=>{
    const grams=toGrams(m[1],m[2]);
+
    if(grams===null||grams<1)return false;
-   const preceding=s.slice(Math.max(0,m.index-35),m.index);
-   if(/(?:дискретн[а-яіїєґ]*|похиб[а-яіїєґ]*|погреш[а-я]*)\s*$/.test(preceding))
+
+   const before=s.slice(Math.max(0,m.index-35),m.index);
+
+   if(/(?:дискретн[а-яіїєґ]*|похиб[а-яіїєґ]*|погреш[а-я]*)\s*$/.test(before))
     return false;
+
    return true;
   });
 
-  if(capMatch)
-   capacity=toGrams(capMatch[1],capMatch[2]);
+  if(found)capacity=toGrams(found[1],found[2]);
  }
 
  return {capacity,readability};
@@ -275,7 +531,7 @@ function catalogScaleSpecs(product){
  }
 
  if(
-  /серія містить|залежно від моделі|залежно від модифікації|кілька модифікацій/i.test(details) ||
+  /серія містить|залежно від моделі|залежно від модифікації|кілька модифікацій/i.test(details)||
   /(?:\d+\s*\/\s*\d+)\s*(?:г|kg|кг)/i.test(title)
  ){
   ambiguous=true;
@@ -290,21 +546,32 @@ function scaleErrorQuery(q){
 }
 
 function dimensions(q){
- const s=norm(q),out={};
+ const s=norm(q);
+ const out={};
+
  let m=s.match(
   /(?:об'єм|місткість|объем)\s*[:=–—-]?\s*(\d+(?:\.\d+)?)\s*(мл|л)/u
  );
- if(m)out.volume=Number(m[1])*(m[2]==="л"?1000:1);
+
+ if(m){
+  out.volume=Number(m[1])*(m[2]==="л"?1000:1);
+ }
 
  m=s.match(
   /(?:діаметр|діам|ø|⌀)\s*[:=–—-]?\s*(\d+(?:\.\d+)?)\s*(мм|см)/u
  );
- if(m)out.diameter=Number(m[1])*(m[2]==="см"?10:1);
+
+ if(m){
+  out.diameter=Number(m[1])*(m[2]==="см"?10:1);
+ }
 
  m=s.match(
   /(?:отвор(?:и|ів|у)?|комірк(?:и|а)?|ячейк(?:а|и)?)\s*[:=–—-]?\s*(\d+(?:\.\d+)?)\s*(мм|мкм)/u
  );
- if(m)out.aperture=Number(m[1])*(m[2]==="мкм"?.001:1);
+
+ if(m){
+  out.aperture=Number(m[1])*(m[2]==="мкм"?.001:1);
+ }
 
  return out;
 }
@@ -317,13 +584,17 @@ function newState(query,aiData=null){
    aiData.normalized_query,
    aiData.category,
    ...(Array.isArray(aiData.keywords)?aiData.keywords:[])
-  ].filter(x=>typeof x==="string").join(" ");
+  ]
+   .filter(x=>typeof x==="string")
+   .join(" ");
+
   category=categoryOf(combined);
  }
 
  return {
   query,
   category,
+  application:applicationOf(query),
   specs:category?.id==="scales"
    ?queryScaleSpecs(query)
    :{capacity:null,readability:null},
@@ -346,20 +617,80 @@ function scoreProduct(p,s){
  if(!s.category.name.test(name))return null;
  if(s.category.exclude?.test(name))return null;
 
+ const kind=productKind(p,s.category);
+
+ if(kind!=="instrument")return null;
+
+ const evidence=applicationEvidence(
+  p,s.category,s.application
+ );
+
+ /*
+ For a clearly stated technical application,
+ do not recommend an unverified instrument
+ as a confirmed match.
+ */
+ if(
+  s.category.id==="viscometer" &&
+  s.application==="paint" &&
+  evidence!=="confirmed"
+ ){
+  return null;
+ }
+
+ if(
+  s.category.id==="moisture" &&
+  s.application==="grain" &&
+  evidence!=="confirmed"
+ ){
+  return null;
+ }
+
+ if(
+  s.category.id==="thermometer" &&
+  s.application==="cold" &&
+  evidence!=="confirmed"
+ ){
+  return null;
+ }
+
  let score=50;
  const confirmed=[];
  const unknown=[];
 
- if(s.category.id==="scales"){
-  if(/аналітичн/.test(norm(s.query)) &&
-     !/аналітичн/.test(name))
-   return null;
+ if(evidence==="confirmed"){
+  score+=100;
+  confirmed.push("призначення згідно з описом товару");
+ }
 
-  const specification=catalogScaleSpecs(p);
+ if(s.category.id==="viscometer"){
+  if(/вз[\s-]*246/.test(name)){
+   score+=35;
+  }
+
+  if(/ротаційн|ротавіск|rotavisc/.test(name)){
+   score+=15;
+  }
+
+  if(/впж|капілярн/.test(name)){
+   score+=5;
+  }
+ }
+
+ if(s.category.id==="scales"){
+  if(
+   /аналітичн/.test(norm(s.query)) &&
+   !/аналітичн/.test(name)
+  ){
+   return null;
+  }
+
+  const spec=catalogScaleSpecs(p);
 
   if(s.specs.capacity!==null){
-   if(!same(specification.capacity,s.specs.capacity))
+   if(!same(spec.capacity,s.specs.capacity)){
     return null;
+   }
 
    confirmed.push(
     "НПВ "+s.specs.capacity+" г"
@@ -368,54 +699,27 @@ function scoreProduct(p,s){
   }
 
   if(s.specs.readability!==null){
-   if(!same(
-    specification.readability,
-    s.specs.readability
-   ))return null;
+   if(!same(spec.readability,s.specs.readability)){
+    return null;
+   }
 
    confirmed.push(
-    "дискретність "+
-    s.specs.readability+" г"
+    "дискретність "+s.specs.readability+" г"
    );
    score+=30;
   }
 
   if(
-   specification.ambiguous &&
-   (s.specs.capacity!==null||
-    s.specs.readability!==null)
+   spec.ambiguous &&
+   (
+    s.specs.capacity!==null||
+    s.specs.readability!==null
+   )
   ){
    unknown.push(
-    "підтвердження конкретної модифікації"
+    "відповідність конкретної модифікації"
    );
   }
- }
-
- if(s.category.id==="moisture"&&s.material){
-  const re=MATERIAL[s.material];
-  if(!re.test(name)&&!re.test(body))return null;
-  score+=20;
- }
-
- if(
-  s.category.id==="thermometer" &&
-  /холодильн|морозильн/.test(norm(s.query))
- ){
-  if(!/холодильн|морозильн/.test(name+" "+body))
-   return null;
-  score+=20;
- }
-
- // Paint viscosity is a specific application.
- // Do not claim confirmed suitability without
- // explicit paint/coating evidence in catalog.
- if(
-  s.category.id==="viscometer" &&
-  /фарб|лак[иоів]|покритт|paint|coating/i.test(norm(s.query))
- ){
-  if(!/фарб|лак[иоів]|покритт|paint|coating/i.test(name+" "+body))
-   return null;
-  score+=25;
  }
 
  const pd=dimensions([
@@ -425,6 +729,7 @@ function scoreProduct(p,s){
  for(const [key,value] of Object.entries(s.dims)){
   if(pd[key]===undefined)return null;
   if(!same(pd[key],value))return null;
+
   confirmed.push(key+": "+value);
   score+=15;
  }
@@ -433,22 +738,37 @@ function scoreProduct(p,s){
 
  if(s.budget!==null&&s.budget!==Infinity){
   if(price!==null&&price>s.budget)return null;
-  if(price===null)
-   unknown.push("ціну");
+
+  if(price===null){
+   unknown.push("вартість товару");
+  }
  }
 
- if(s.category.id==="conductivity" &&
-    /кондуктометр/.test(name))
+ if(
+  s.category.id==="conductivity" &&
+  /кондуктометр/.test(name)
+ ){
   score+=25;
+ }
 
- if(s.category.id==="ph" &&
-    /ph[\s-]*метр/i.test(name))
+ if(
+  s.category.id==="ph" &&
+  /ph[\s-]*метр/i.test(name)
+ ){
   score+=15;
+ }
 
  if(price!==null)score+=2;
  if(!unknown.length)score+=5;
 
- return {product:p,score,confirmed,unknown};
+ return {
+  product:p,
+  score,
+  confirmed,
+  unknown,
+  evidence,
+  kind
+ };
 }
 
 function description(p){
@@ -465,8 +785,8 @@ function description(p){
   :s;
 }
 
-function productCard(r){
- const p=r.product;
+function productCard(result){
+ const p=result.product;
  const card=document.createElement("div");
  card.className="product";
 
@@ -485,26 +805,26 @@ function productCard(r){
  const desc=description(p);
 
  if(desc){
-  const el=document.createElement("div");
-  el.className="detail";
-  el.textContent=desc;
-  card.appendChild(el);
+  const d=document.createElement("div");
+  d.className="detail";
+  d.textContent=desc;
+  card.appendChild(d);
  }
 
- if(r.confirmed.length){
-  const el=document.createElement("div");
-  el.className="detail good";
-  el.textContent="Знайдено в каталозі: "+
-   r.confirmed.join(", ")+".";
-  card.appendChild(el);
+ if(result.confirmed.length){
+  const d=document.createElement("div");
+  d.className="detail good";
+  d.textContent="Підтверджено за каталогом: "+
+   result.confirmed.join(", ")+".";
+  card.appendChild(d);
  }
 
- if(r.unknown.length){
-  const el=document.createElement("div");
-  el.className="note";
-  el.textContent="Потрібно уточнити: "+
-   r.unknown.join(", ")+".";
-  card.appendChild(el);
+ if(result.unknown.length){
+  const d=document.createElement("div");
+  d.className="note";
+  d.textContent="Потрібно уточнити: "+
+   result.unknown.join(", ")+".";
+  card.appendChild(d);
  }
 
  return card;
@@ -512,6 +832,7 @@ function productCard(r){
 
 function renderProduct(){
  if(!resultBox||!results.length)return;
+
  resultBox.replaceChildren();
 
  const status=document.createElement("div");
@@ -519,8 +840,8 @@ function renderProduct(){
  status.style.marginBottom="10px";
  status.textContent=
   "Товар "+(resultIndex+1)+" із "+results.length;
- resultBox.appendChild(status);
 
+ resultBox.appendChild(status);
  resultBox.appendChild(
   productCard(results[resultIndex])
  );
@@ -533,17 +854,24 @@ function renderProduct(){
  prev.className="choice";
  prev.textContent="← Попередній товар";
  prev.disabled=resultIndex===0;
- prev.onclick=()=>{resultIndex--;renderProduct()};
+ prev.onclick=()=>{
+  resultIndex--;
+  renderProduct();
+ };
 
  const next=document.createElement("button");
  next.type="button";
  next.className="choice";
  next.textContent="Наступний товар →";
  next.disabled=resultIndex===results.length-1;
- next.onclick=()=>{resultIndex++;renderProduct()};
+ next.onclick=()=>{
+  resultIndex++;
+  renderProduct();
+ };
 
  nav.append(prev,next);
  resultBox.appendChild(nav);
+ messages.scrollTop=messages.scrollHeight;
 }
 
 function recommend(skipAI=false){
@@ -552,11 +880,14 @@ function recommend(skipAI=false){
    "Не вдалося визначити тип обладнання. "+
    "Можете уточнити запит через AI."
   );
+
   if(!skipAI)offerAI(current.query);
+
   buttons([
    "Новий пошук",
    "Зв'язатися з менеджером"
   ]);
+
   return;
  }
 
@@ -564,50 +895,62 @@ function recommend(skipAI=false){
   .map(p=>scoreProduct(p,current))
   .filter(Boolean)
   .sort((a,b)=>
-   a.unknown.length-b.unknown.length||
-   b.score-a.score
+   b.score-a.score||
+   a.unknown.length-b.unknown.length
   );
 
  if(!results.length){
   message(
-   "У каталозі немає товарів із підтвердженою "+
-   "відповідністю заданим параметрам. "+
-   "Уточніть характеристики або зверніться "+
-   "до менеджера Лабзони."
+   "У поточному каталозі не знайдено товарів "+
+   "із підтвердженою відповідністю вашому запиту. "+
+   "Це не означає, що Лабзона не постачає "+
+   "таке обладнання. Менеджер допоможе "+
+   "перевірити доступні моделі та характеристики."
   );
 
   if(!skipAI)offerAI(current.query);
 
   buttons([
-   "Уточнити бюджет",
    "Новий пошук",
    "Зв'язатися з менеджером"
   ]);
+
   return;
  }
 
- const precise=
-  current.category.id==="scales" &&
-  (
-   current.specs.capacity!==null||
-   current.specs.readability!==null
-  );
-
- message(
+ let text=
   "Категорія: "+current.category.label+". "+
   "Знайдено "+results.length+
-  (
-   precise
-    ?" товарів зі збігами заданих параметрів. "
-    :" потенційно відповідних товарів. "
-  )+
-  "Непідтверджені характеристики позначено в картках."
- );
+  " потенційно відповідних товарів.";
+
+ if(results.some(r=>r.evidence==="confirmed")){
+  text+=
+   " Першими показано товари з підтвердженим "+
+   "призначенням.";
+ }
+
+ text+=
+  " Перед замовленням перевірте технічні "+
+  "характеристики обраної моделі.";
+
+ message(text);
 
  resultIndex=0;
  resultBox=document.createElement("div");
  messages.appendChild(resultBox);
  renderProduct();
+
+ if(
+  current.category.id==="viscometer" &&
+  current.application==="paint"
+ ){
+  message(
+   "Уточнення: потрібне вимірювання умовної "+
+   "в'язкості за часом витікання чи динамічної "+
+   "в'язкості в мПа·с? Для цих методів "+
+   "використовують різні типи віскозиметрів."
+  );
+ }
 
  buttons([
   "Уточнити бюджет",
@@ -630,6 +973,7 @@ function offerAI(originalQuery){
 
  button.onclick=()=>{
   if(aiBusy)return;
+
   button.disabled=true;
 
   if(
@@ -637,7 +981,8 @@ function offerAI(originalQuery){
    typeof window.turnstile.render!=="function"
   ){
    message(
-    "Turnstile ще завантажується. Спробуйте знову."
+    "Turnstile ще завантажується. "+
+    "Спробуйте знову."
    );
    button.disabled=false;
    return;
@@ -657,6 +1002,7 @@ function offerAI(originalQuery){
 
     callback:async token=>{
      if(used)return;
+
      used=true;
      aiBusy=true;
 
@@ -751,12 +1097,9 @@ function offerAI(originalQuery){
      holder.remove();
      button.disabled=false;
     }
-
    });
   }catch{
-   message(
-    "Не вдалося запустити Turnstile."
-   );
+   message("Не вдалося запустити Turnstile.");
    holder.remove();
    button.disabled=false;
   }
@@ -790,7 +1133,9 @@ function manager(){
 
 function start(){
  current=null;
+
  message("Яке обладнання шукаєте?");
+
  buttons([
   "Аналітичні ваги",
   "pH-метр",
@@ -825,13 +1170,12 @@ function handle(raw){
 
  if(/^уточнити бюджет$/i.test(value)){
   if(!current){
-   message(
-    "Спочатку напишіть назву обладнання."
-   );
+   message("Спочатку напишіть назву обладнання.");
    return;
   }
 
   current.waitBudget=true;
+
   message("Який максимальний бюджет?");
 
   buttons([
@@ -841,6 +1185,7 @@ function handle(raw){
    "До 15000 грн",
    "Без обмежень"
   ]);
+
   return;
  }
 
