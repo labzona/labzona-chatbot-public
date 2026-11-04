@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Лабзона | AI-консультант</title>
+<title>Лабзона | Консультант</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color:#242424}
@@ -26,7 +26,7 @@ body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color
 .detail{margin-top:8px;font-size:13px;line-height:1.5;color:#555}
 .good{color:#237247}
 .note{font-size:12px;color:#777;margin-top:9px}
-.form{display:flex;gap:8px;padding:12px;border-top:1px solid #eee}
+.form{display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fff}
 .form input{flex:1;min-width:0;padding:11px;border:1px solid #ccc;border-radius:9px;font-size:14px}
 .send{border:0;border-radius:9px;background:#c91d2c;color:#fff;padding:11px 14px;cursor:pointer}
 .turnstile-holder{margin:8px 0 14px}
@@ -42,7 +42,7 @@ body{margin:0;padding:12px;background:#f4f6f8;font-family:Arial,sans-serif;color
 <div class="chat">
   <div class="header">
     <strong>Лабзона | Консультант</strong>
-    <small>Підбір лабораторного обладнання · Тест AI</small>
+    <small>Підбір лабораторного обладнання</small>
   </div>
   <div class="messages" id="messages" aria-live="polite"></div>
   <form class="form" id="form">
@@ -150,7 +150,7 @@ const CATEGORIES=[
  {id:"caliper",label:"Штангенциркулі",q:/штангенциркул/i,name:/штангенциркул/i,exclude:null},
  {id:"falling-number",label:"Прилади числа падіння",q:/числ[ао] падін|числ[ао] паден|пчп/i,name:/числ[ао] падін|числ[ао] паден|пчп/i,exclude:null},
  {id:"anemometer",label:"Анемометри",q:/анемометр|швидкість повітря/i,name:/анемометр/i,exclude:null},
- {id:"viscometer",label:"Віскозиметри",q:/віскозиметр|вискозиметр|в'язкість рідини/i,name:/віскозиметр|вискозиметр/i,exclude:null}
+ {id:"viscometer",label:"Віскозиметри",q:/віскозиметр|вискозиметр|в'язкість рідини/i,name:/віскозиметр|вискозиметр/i,exclude:/пробірк|пчп|числ[ао] падін|числ[ао] паден|запчастин|комплектуюч|аксесуар|окремий ротор|калібрувальн.*рідина/i}
 ];
 
 const MATERIAL={
@@ -198,7 +198,6 @@ function same(a,b){
   Math.abs(a-b)<Math.max(1e-8,Math.abs(b)*1e-6);
 }
 
-// Full Ukrainian endings, rather than JavaScript \w.
 const READABILITY_PATTERN=
  /(?:дискретн[а-яіїєґ]*|крок зважування|ціна поділки|readability)\s*[:=–—-]?\s*(\d+(?:\.\d+)?)\s*(мг|mg|кг|kg|г|g)(?=\s|$|[.,;])/i;
 
@@ -225,7 +224,6 @@ function queryScaleSpecs(query){
   readability=toGrams(pair[3],pair[4]);
  }
 
- // Detect unlabeled capacity ("ваги 220 г").
  if(capacity===null){
   const matches=[...s.matchAll(
    /(\d+(?:\.\d+)?)\s*(кг|kg|г|g)(?=\s|$|[.,;/])/gi
@@ -247,8 +245,6 @@ function queryScaleSpecs(query){
  return {capacity,readability};
 }
 
-// A titled capacity/readability pair takes precedence
-// over unrelated numeric values in long descriptions.
 function catalogScaleSpecs(product){
  const title=norm(product.name);
  const details=norm([
@@ -278,7 +274,6 @@ function catalogScaleSpecs(product){
   else if(dd)readability=toGrams(dd[1],dd[2]);
  }
 
- // Series/multirange descriptions need further review.
  if(
   /серія містить|залежно від моделі|залежно від модифікації|кілька модифікацій/i.test(details) ||
   /(?:\d+\s*\/\s*\d+)\s*(?:г|kg|кг)/i.test(title)
@@ -362,7 +357,6 @@ function scoreProduct(p,s){
 
   const specification=catalogScaleSpecs(p);
 
-  // Every explicitly requested scale parameter is mandatory.
   if(s.specs.capacity!==null){
    if(!same(specification.capacity,s.specs.capacity))
     return null;
@@ -410,6 +404,18 @@ function scoreProduct(p,s){
   if(!/холодильн|морозильн/.test(name+" "+body))
    return null;
   score+=20;
+ }
+
+ // Paint viscosity is a specific application.
+ // Do not claim confirmed suitability without
+ // explicit paint/coating evidence in catalog.
+ if(
+  s.category.id==="viscometer" &&
+  /фарб|лак[иоів]|покритт|paint|coating/i.test(norm(s.query))
+ ){
+  if(!/фарб|лак[иоів]|покритт|paint|coating/i.test(name+" "+body))
+   return null;
+  score+=25;
  }
 
  const pd=dimensions([
@@ -554,8 +560,6 @@ function recommend(skipAI=false){
   return;
  }
 
- // Prevent incomplete scale specifications from being
- // treated as verified product matches.
  results=products
   .map(p=>scoreProduct(p,current))
   .filter(Boolean)
@@ -567,7 +571,7 @@ function recommend(skipAI=false){
  if(!results.length){
   message(
    "У каталозі немає товарів із підтвердженою "+
-   "відповідністю всім заданим параметрам. "+
+   "відповідністю заданим параметрам. "+
    "Уточніть характеристики або зверніться "+
    "до менеджера Лабзони."
   );
@@ -858,7 +862,6 @@ function handle(raw){
 
  current=newState(value);
 
- // Do not equate measurement error with readability.
  if(scaleErrorQuery(value)){
   message(
    "Уточніть, будь ласка: йдеться про "+
